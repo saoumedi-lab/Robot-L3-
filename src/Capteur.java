@@ -67,7 +67,7 @@ public class Capteur {
     // ==========================================
 		
         // le port s1 est par défaut , faut vérifier sur le robot lequel est branché 
-        portPression = LocalEV3.get().getPort("S2"); 
+        portPression = LocalEV3.get().getPort("S3"); 
 
         // associer le cptr au port choisi
         capteurPression = new EV3TouchSensor(portPression);
