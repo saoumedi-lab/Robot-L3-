@@ -171,14 +171,22 @@ public float distance() {
 
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		 Capteur monCapteur = new Capteur();
-		while (true) {
-			System.out.println(monCapteur.detecterPression());
+	System.out.println("Allumage des capteurs...");
+        Capteur monCapteur = new Capteur();
+        System.out.println("Prets (S3 et S2) !");
+        
+        // Boucle infinie jusqu'à appui sur le bouton Echap
+        while (!Button.ESCAPE.isDown()) {
             
-            // Petite pause de 200 millisecondes pour ne pas saturer l'écran
-            lejos.utility.Delay.msDelay(200); 
-		}
-	}
-
-
+            boolean estPresse = monCapteur.detecterPression();
+            String couleurVue = monCapteur.getCouleur();
+            
+            // Affiche les deux infos en même temps
+            System.out.println("Bouton: " + estPresse + " | Coul: " + couleurVue);
+            
+            Delay.msDelay(300);
+        }
+        
+        monCapteur.fermer();
+    }
+}
