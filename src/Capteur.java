@@ -7,7 +7,8 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.Color;                                   
 import lejos.robotics.filter.MeanFilter;
 import lejos.utility.Delay;
-
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 
 
 public class Capteur {
@@ -162,6 +163,10 @@ public class Capteur {
 	// ==========================================
     // === PARTIE CAPTEUR DE distance         ===
     // ==========================================
+
+	 // decalre que le capteur d'ultrason a pour nom cs
+    private EV3UltrasonicSensor cs = new EV3UltrasonicSensor(SensorPort.S4);
+	
 public float distance() {
 		 SampleProvider distance = cs.getDistanceMode();
 		    float[] mesure = new float[1];
