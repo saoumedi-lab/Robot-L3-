@@ -1,0 +1,93 @@
+import lejos.hardware.Button;
+
+/**
+  Tests manuels des mouvements et de la pince du robot EV3.
+  Chaque test attend un appui sur un bouton avant de lancer l'action.
+  Le résultat est ensuite vérifié visuellement ou à l'aide d'une mesure.
+  Cette classe doit être exécutée sur la brique EV3.
+ */
+public class TestAction {
+
+	/** Objet utilisé pour commander les moteurs du robot. */
+	private Action action = new Action();
+
+	/**
+	 * Vérifie que le robot avance de 20 cm en ligne droite.
+	 * Le déplacement est mesuré depuis un même point du robot.
+	 */
+	public void testAvancer() {
+		System.out.println("TEST : avancer de 20 cm");
+		System.out.println("Place le robot puis appuie.");
+		Button.waitForAnyPress();
+
+		action.avancer(20);
+
+		System.out.println("Verifie : 20 cm en ligne droite.");
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 Vérifie que le robot recule de 20 cm en ligne droite.
+	 Prévoir un espace libre derrière le robot.
+	 */
+	public void testReculer() {
+		System.out.println("TEST : reculer de 20 cm");
+		System.out.println("Place le robot puis appuie.");
+		Button.waitForAnyPress();
+
+		action.reculer(20);
+
+		System.out.println("Verifie : recul de 20 cm.");
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 Vérifie que le robot effectue une rotation de 90 degrés sur place.
+	 L'orientation initiale doit être repérée avant le mouvement.
+	 */
+	public void testTournerVers() {
+		System.out.println("TEST : tourner de 90 degres");
+		System.out.println("Repere la direction puis appuie.");
+		Button.waitForAnyPress();
+
+		action.tournerVers(90);
+
+		System.out.println("Verifie : quart de tour.");
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 Vérifie la fermeture de la pince et l'arrêt de son moteur.
+	 La pince doit être ouverte avant le lancement du test.
+	 */
+	public void testFermerPince() {
+		System.out.println("TEST : fermer la pince");
+		System.out.println("Pince ouverte puis appuie.");
+		Button.waitForAnyPress();
+
+		action.fermerPince();
+
+		System.out.println("Verifie : pince fermee, moteur arrete.");
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 Vérifie l'ouverture de la pince et l'arrêt de son moteur.
+	 La pince doit être fermée avant le lancement du test.
+	 */
+	public void testOuvrirPince() {
+		System.out.println("TEST : ouvrir la pince");
+		System.out.println("Pince fermee puis appuie.");
+		Button.waitForAnyPress();
+
+		action.ouvrirPince();
+
+		System.out.println("Verifie : pince ouverte, moteur arrete.");
+		Button.waitForAnyPress();
+	}
+
+	
+	public static void main(String[] args) {
+		
+	}
+}
