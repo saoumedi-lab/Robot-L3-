@@ -63,7 +63,7 @@ public class Action {
 				Motor.C.setSpeed(SPEED); 
 				Motor.C.forward(); 
 				Delay.msDelay(5000);
-			    Motor.A.stop();
+			    Motor.C.stop();
 			}
 }
 
