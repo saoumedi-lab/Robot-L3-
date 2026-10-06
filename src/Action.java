@@ -12,7 +12,7 @@ public class Action {
 		Motor.B.setSpeed(SPEED); 
 		Motor.C.setSpeed(SPEED);
 		// Conversion de la distance en cm vers les degrés de rotation du moteur 
-		int degresMoteur = (int) Math.round((d / ((Math.PI * 5.5)) * 360.0); //pi*diamètre = circonference
+		int degresMoteur = (int) Math.round((d / ((Math.PI * 5.5)) * 360.0)); //pi*diamètre = circonference
 
 		// Le paramètre true indique à leJOS d'exécuter la commande en arrière-plan sans bloquer le programme, // ce qui permet de lancer Motor.D instantanément et de faire avancer les deux roues en parallèle. 
 		Motor.B.rotate(degresMoteur, true); 
@@ -54,6 +54,7 @@ public class Action {
 				Motor.A.setSpeed(SPEED); 
 				Motor.A.backward(); 
 				Delay.msDelay(5000);
+			    Motor.A.stop();
 			}
 		
 		//Une méthode qui ouvre la pince du robot
@@ -62,6 +63,7 @@ public class Action {
 				Motor.C.setSpeed(SPEED); 
 				Motor.C.forward(); 
 				Delay.msDelay(5000);
+			    Motor.A.stop();
 			}
 }
 
