@@ -1,73 +1,38 @@
-import lejos.hardware.BrickFinder;
-import lejos.hardware.lcd.GraphicsLCD;
-import lejos.hardware.motor.Motor;
-import lejos.utility.Delay;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.port.MotorPort;
+import lejos.robotics.RegulatedMotor;
 
 public class Action {
 	
+	// Vitesse par défaut
+	private final int SPEED = 300; 
+	
+	// Déclaration des moteurs 
+	private RegulatedMotor moteurGauche;
+	private RegulatedMotor moteurDroit;
+	
+	public Action() {
+		// Initialisation des roues motrices sur les ports B et C
+		moteurGauche = new EV3LargeRegulatedMotor(MotorPort.B);
+		moteurDroit = new EV3LargeRegulatedMotor(MotorPort.C);
+	}
+
+	// ==========================================
+	// === DEPLACEMENT  (Distance)      ===
+	// ==========================================
+	
 	// Méthode qui fait avancer le robot de la distance en paramètre (en cm)
-	public void avancer(double d) { 
-		Motor.B.setSpeed(SPEED); 
-		Motor.D.setSpeed(SPEED);
-		// Conversion de la distance en cm vers les degrés de rotation du moteur 
-		int degresMoteur = (int) Math.round((d / Math.PI*5.5) * 360.0); //pi*diamètre = circonference
+	public void avancer(double d) {
+		moteurGauche.setSpeed(SPEED);
+		moteurDroit.setSpeed(SPEED); 
 
-		// Le paramètre true indique à leJOS d'exécuter la commande en arrière-plan sans bloquer le programme, // ce qui permet de lancer Motor.D instantanément et de faire avancer les deux roues en parallèle. 
-		Motor.B.rotate(degresMoteur, true); 
-		Motor.C.rotate(degresMoteur); 
-		} 
-	
-	
-	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
-	public void reculer(double d) {
-	Motor.B.setSpeed(SPEED); 
-	Motor.D.setSpeed(SPEED);
-	// Conversion de la distance en cm vers les degrés de rotation du moteur 
-	int degresMoteur = (int) Math.round((d / Math.PI*5.5) * 360.0); //pi*diamètre = circonference
-	Motor.B.rotate(-degresMoteur, true); 
-	Motor.C.rotate(-degresMoteur); 
-	} 
+		// Conversion de la distance en cm vers les degrés de rotation du moteur
+		// Formule : (distance / circonférence) * 360
+		int degresMoteur = (int) Math.round((d / (Math.PI * 5.5)) * 360.0); 
 
-	
-	//Une méthode qui permet au robot de tourner d'un angle donné en paramètres vers la droite (en degrès).
-	//Vérifier si la vitesse peut être améliorée en tournant les 2 roues en même temps!!
-		public void tourner(float angle) {
-			Motor.C.setSpeed(SPEED);
-			int angleArr=(int) Math.round(1.98*angle); //arroundir un reel en entier(Math.round)
-			Motor.C.rotate(angleArr); 
-			Delay.msDelay(2000); 
-			compteurDeDegre+=angle;  //retenir les degres que le robot a tourné
-		}
-
-		//Une méthode qui permet au robot de tourner d'un angle donné en paramètres (en degrès), de manière 
-		//efficace, sans tourner d'un angle trop grand inutilement.
-		// Vérifié si le robot tourne bien vers la droite si ‘angle”<180 et gauche si ‘angle’ >180 !!!
-		public void efficaceTourner(float angle) {
-				if(angle<180) 
-					tourner(angle);
-				else  {
-					float invAngle=360-angle;
-					tourner(-invAngle);
-				}
-			}
-
-		// Méthode qui ferme la pince du robot
-
-		public void fermerPince() {
-				Motor.A.setSpeed(SPEED); 
-				Motor.A.backward(); 
-				pinceOuverte=false; // definir que la pince est fermé 
-				Delay.msDelay(3000);
-			}
-		
-		//Une méthode qui ouvre la pince du robot
-
-		public void ouvrirPince() {
-				Motor.C.setSpeed(SPEED); 
-				Motor.C.forward(); 
-				pinceOuverte=true; // définir que la pince est ouverte
-				Delay.msDelay(3000);
-			}
+		// Le "true" permet de lancer le moteur gauche sans bloquer la lecture, 
+		// pour que le moteur droit démarre exactement en même temps.
+		moteurGauche.rotate(degresMoteur, true);
+		moteurDroit.rotate(degresMoteur);
+	}
 }
-
-	
