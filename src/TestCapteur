@@ -1,0 +1,84 @@
+import lejos.hardware.Button;
+
+public class TestCapteur {
+
+	/** Objet donnant accès aux trois capteurs du robot. */
+	private Capteur capteur = new Capteur();
+
+	/**
+	 * Vérifie les deux états du capteur de contact.
+	 * Résultats attendus : false au repos, true lorsque le bouton est appuyé.
+	 */
+	public void testDetecterPression() {
+		System.out.println("Relache le capteur de contact.");
+		System.out.println("Appuie sur un bouton EV3.");
+		Button.waitForAnyPress();
+
+		System.out.println("Attendu : false");
+		System.out.println("Obtenu : " + capteur.detecterPression());
+
+		System.out.println("Maintiens le contact enfonce.");
+		System.out.println("Appuie sur un bouton EV3.");
+		Button.waitForAnyPress();
+
+		System.out.println("Attendu : true");
+		System.out.println("Obtenu : " + capteur.detecterPression());
+
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 * Vérifie la distance mesurée devant le capteur à ultrasons.
+	 * La mesure est exprimée en mètres.
+	 */
+	public void testDistance() {
+		System.out.println("Place une surface a 20 cm");
+		System.out.println("devant le capteur, puis appuie.");
+		Button.waitForAnyPress();
+
+		System.out.println("Attendu : environ 0.20 m");
+		System.out.println("Obtenu : " + capteur.distance() + " m");
+
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 * Vérifie la reconnaissance d'une surface rouge.
+	 * Le capteur doit être placé à sa hauteur habituelle de fonctionnement.
+	 */
+	public void testGetCouleur() {
+		System.out.println("Place le capteur sur du rouge.");
+		System.out.println("Appuie sur un bouton EV3.");
+		Button.waitForAnyPress();
+
+		String couleur = capteur.getCouleur();
+
+		System.out.println("Attendu : rouge");
+		System.out.println("Obtenu : " + couleur);
+		System.out.println("Test reussi : " + "rouge".equals(couleur));
+
+		Button.waitForAnyPress();
+	}
+
+	/**
+	 * Vérifie le calcul de distance entre deux couleurs identiques.
+	 * Le résultat attendu est zéro.
+	 */
+	public void testDistanceClr() {
+		float[] couleur1 = {0.12f, 0.12f, 0.11f};
+		float[] couleur2 = {0.12f, 0.12f, 0.11f};
+
+		float resultat = capteur.distanceClr(couleur1, couleur2);
+
+		System.out.println("Attendu : 0.0");
+		System.out.println("Obtenu : " + resultat);
+		System.out.println("Test reussi : " + (resultat == 0.0f));
+
+		Button.waitForAnyPress();
+	}
+
+	
+	public static void main(String[] args) {
+		
+	}
+}

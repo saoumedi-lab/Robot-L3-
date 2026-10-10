@@ -36,3 +36,4 @@ public class Action {
 		moteurDroit.rotate(degresMoteur);
 	}
 }
+
