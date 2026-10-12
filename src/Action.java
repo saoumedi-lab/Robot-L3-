@@ -56,7 +56,7 @@ public class Action {
 		*/
 	
 	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
-	public void avancer(double d) {
+	public void reculer(double d) {
 		// pilot.travel attend des millimètres, donc on multiplie les cm par 10
 		pilot.travel(-d * 10);
 	}
@@ -77,10 +77,10 @@ public class Action {
 			pilot.rotate(-0.88*(double)angle);
 		}
 
-	// methode qui permet de tourner le robot a gauche d'un certain angle de manière asynchrone
-		public void tournerG(int angle) { 
+	// methode qui permet de tourner le robot a droite d'un certain angle de manière asynchrone
+		public void asyncTournerG(int angle) { 
 			pilot.setAngularSpeed(100);
-			pilot.rotate(-0.88*(double)angle);
+			pilot.rotate(-0.89*(double)angle,true);
 		}
 		
 		// methode qui permet de tourner le robot a gauche d'un certain angle de manière asynchrone
