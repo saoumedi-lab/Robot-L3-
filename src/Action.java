@@ -128,7 +128,21 @@ public void serrerPince() {
 				Delay.msDelay(5000);
 			    Motor.A.stop();
 			}
-
+public void lacher(Capteur capteurs) {
+		// 1. Le robot avance en continu vers la ligne
+		pilot.forward();
+		
+		// 2. On attend d'arriver sur le blanc
+		while(!capteurs.getCouleur().equals("blanc")) {
+			// Rien dans la boucle, le robot avance tout seul
+		}
+		
+		// 3. On s'arrête sur la ligne
+		pilot.stop();
+		
+		// 4. On appelle juste ta méthode existante !
+		ouvrirPince();
+	}
 
 }
 	
