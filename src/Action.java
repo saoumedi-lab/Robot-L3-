@@ -54,7 +54,9 @@ public class Action {
 		moteurGauche.rotate(degresMoteur, true);
 		moteurDroit.rotate(degresMoteur);
 		*/
-	
+	public void avancerSansFin() {
+		pilot.forward();
+	}
 	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
 	public void reculer(double d) {
 		// pilot.travel attend des millimètres, donc on multiplie les cm par 10
@@ -110,5 +112,7 @@ public void fermerPince() {
 				Delay.msDelay(5000);
 			    Motor.A.stop();
 			}
+
+
 }
 	
