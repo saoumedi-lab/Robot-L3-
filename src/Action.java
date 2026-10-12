@@ -96,5 +96,13 @@ public void ouvrirPince() {
 		Motor.A.forward(); 
 		Delay.msDelay(2000);
 	}
+	// Méthode qui ferme la pince du robot
+
+public void fermerPince() {
+				Motor.A.setSpeed(SPEED); 
+				Motor.A.backward(); 
+				Delay.msDelay(5000);
+			    Motor.A.stop();
+			}
 }
 	
