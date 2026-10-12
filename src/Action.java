@@ -55,13 +55,13 @@ public class Action {
 		// methode qui permet de tourner le robot a droite d'un certain angle a droite
 		public void tournerD(int angle) { 
 			pilot.setAngularSpeed(100);
-			pilot.rotate(0.89*(double)angle);
+			pilot.rotate(0.88*(double)angle);
 		}
 		
 		// methode qui permet de tourner le robot a gauche d'un certain angle a droite
 		public void tournerG(int angle) { 
 			pilot.setAngularSpeed(100);
-			pilot.rotate(-0.89*(double)angle);
+			pilot.rotate(-0.88*(double)angle);
 		}
 				
 		public boolean isMoving() { // renvoie true si le robot est en mouvement
