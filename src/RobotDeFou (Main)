@@ -1,0 +1,36 @@
+import lejos.hardware.Button;
+import lejos.utility.Delay;
+
+public class RobotDeFou {
+
+    public static void main(String[] args) {
+        System.out.println("Initialisation...");
+
+        // 1. Instanciation des composants du robot
+        Capteur capteurs = new Capteur();
+        Action robot = new Action();
+
+        System.out.println("En attente d'un appui sur ENTER pour démarrer...");
+        Button.ENTER.waitForPressAndRelease();
+
+        System.out.println("Avance jusqu'à la détection d'une collision...");
+
+        // 2. Lance l'avance continue (vitesse de 150 mm/s)
+        robot.avancer2(100);
+
+        // 3. Boucle active : avance tant que le bouton N'EST PAS activé et qu'on N'APPUIE PAS sur ÉCHAP
+        while (!capteurs.detecterPression() && !Button.ESCAPE.isDown()) {
+            Delay.msDelay(50); // Pause de 20 ms pour éviter de surcharger le processeur de la brique
+        }
+
+        // 4. Arrêt immédiat lors de la pression sur le capteur de contact
+        robot.stop();
+        System.out.println("Obstacle détecté !");
+        //fermerPince(); arrivé 
+
+        // 5. Fermeture propre des ressources
+        capteurs.fermer();
+        
+        Delay.msDelay(1000); // Pause finale pour lire le message à l'écran
+    }
+ }
