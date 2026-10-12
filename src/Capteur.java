@@ -158,6 +158,8 @@ public class Capteur {
 
 	public void fermer() {
 		capteurCouleur.close();
+		 capteurPression.close();
+   		 cs.close();
 	}
 
 	// ==========================================
