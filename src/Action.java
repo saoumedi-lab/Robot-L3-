@@ -67,5 +67,14 @@ public class Action {
 		public boolean isMoving() { // renvoie true si le robot est en mouvement
 			return pilot.isMoving();
 		}
+	// ==========================================
+	// ================PINCE=====================      
+	// ==========================================
+
+public void ouvrirPince() {
+		Motor.A.setSpeed(SPEED); 
+		Motor.A.forward(); 
+		Delay.msDelay(2000);
+	}
 
 	
