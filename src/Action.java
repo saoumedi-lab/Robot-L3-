@@ -15,7 +15,7 @@ public class Action {
 	private MovePilot pilot ;
 	
 	public Action() {
-		this(MotorPort.B,MotorPort.C);
+		this(MotorPort.C,MotorPort.B);
 	}
 	
 	public Action(Port mG, Port mD) {
