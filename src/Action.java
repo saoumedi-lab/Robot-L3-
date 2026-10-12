@@ -6,8 +6,11 @@ import lejos.robotics.navigation.MovePilot;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
 import lejos.utility.Delay; //test
+import lejos.hardware.motor.Motor; 
 
 public class Action {
+	private final int SPEED = 300;
+	
 	private Chassis chassis ; 
 	private MovePilot pilot ;
 	
@@ -35,7 +38,11 @@ public class Action {
 	
 	// Méthode qui fait avancer le robot de la distance en paramètre (en cm)
 	public void avancer(double d) {
-		moteurGauche.setSpeed(SPEED);
+		// pilot.travel attend des millimètres, donc on multiplie les cm par 10
+		pilot.travel(d * 10);
+	}
+		//anciennce version de la méthode avancer 
+	/* moteurGauche.setSpeed(SPEED);
 		moteurDroit.setSpeed(SPEED); 
 
 		// Conversion de la distance en cm vers les degrés de rotation du moteur
@@ -46,8 +53,9 @@ public class Action {
 		// pour que le moteur droit démarre exactement en même temps.
 		moteurGauche.rotate(degresMoteur, true);
 		moteurDroit.rotate(degresMoteur);
-	}
-}
+		*/
+	
+	
 	// ==========================================
 	// ================TOURNER===================        
 	// ==========================================
@@ -76,5 +84,5 @@ public void ouvrirPince() {
 		Motor.A.forward(); 
 		Delay.msDelay(2000);
 	}
-
+}
 	
