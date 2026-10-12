@@ -13,6 +13,7 @@ public class Action {
 	
 	private Chassis chassis ; 
 	private MovePilot pilot ;
+	private int boussole;
 	
 	public Action() {
 		this(MotorPort.C,MotorPort.B);
@@ -32,6 +33,21 @@ public class Action {
 		public void stop() {
 			pilot.stop();
 		}
+
+	// ==========================================
+	// ===   BOUSSOLE      ===
+	// ==========================================
+
+	private void actBoussole (int angle){
+		boussole = ((boussole + angle) % 360 + 360) % 360;
+	}
+
+	public int getBoussole() {
+		return boussole; 
+	}
+
+		
+	
 	// ==========================================
 	// === DEPLACEMENT  (Distance)      ===
 	// ==========================================
