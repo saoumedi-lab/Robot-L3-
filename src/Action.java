@@ -71,6 +71,18 @@ public class Action {
 			pilot.setAngularSpeed(100);
 			pilot.rotate(-0.88*(double)angle);
 		}
+
+	// methode qui permet de tourner le robot a gauche d'un certain angle de manière asynchrone
+		public void tournerG(int angle) { 
+			pilot.setAngularSpeed(100);
+			pilot.rotate(-0.88*(double)angle);
+		}
+		
+		// methode qui permet de tourner le robot a gauche d'un certain angle de manière asynchrone
+		public void asyncTournerD(int angle) { 
+			pilot.setAngularSpeed(100);
+			pilot.rotate(0.89*(double)angle,true);
+		} 
 				
 		public boolean isMoving() { // renvoie true si le robot est en mouvement
 			return pilot.isMoving();
