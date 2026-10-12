@@ -55,6 +55,11 @@ public class Action {
 		moteurDroit.rotate(degresMoteur);
 		*/
 	
+	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
+	public void avancer(double d) {
+		// pilot.travel attend des millimètres, donc on multiplie les cm par 10
+		pilot.travel(-d * 10);
+	}
 	
 	// ==========================================
 	// ================TOURNER===================        
