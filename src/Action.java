@@ -70,13 +70,10 @@ public class Action {
 		moteurGauche.rotate(degresMoteur, true);
 		moteurDroit.rotate(degresMoteur);
 		*/
-	// Change la vitesse linéaire du robot (en mm/s)
-	public void setVitesse(double vitesse) {
-		pilot.setLinearSpeed(vitesse);
-	}
 
 	// Avance en continu 
 	public void avancerSansFin() {
+		pilot.setLinearSpeed(vitesse);
 		pilot.forward();
 	}
 	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
