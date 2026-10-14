@@ -10,25 +10,27 @@ public class RobotDeFou {
         Capteur capteurs = new Capteur();
         Action robot = new Action();
 
-        System.out.println("En attente d'un appui sur ENTER pour démarrer...");
-        Button.ENTER.waitForPressAndRelease();
-
         System.out.println("Avance jusqu'à la détection d'une collision...");
 
         // 2. Lance l'avance continue (vitesse de 150 mm/s)
-        robot.avancerSansFin();
+        robot.avancerSansFin(100);
 
       
        // 3. des qu'on detecte le palet on ouvre les pinces
-		while(capteurs.distance() > 0.05f) {
+		while(capteurs.distance() > 0.30f) {
 		}
 
         // 4. Arrêt immédiat lors de la pression sur le capteur de contact
         robot.stop();
         System.out.println("Obstacle détecté !");
         robot.ouvrirPince();
-        robot.avancer(5);       // On avance de 5 cm pour bien englober le palet
+        robot.avancerSansFin(30);    // On avance jusqu'a ce que le capteur soit enclencher
+
+		while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
+            Delay.msDelay(20); // Pause pour ne pas surcharger le processeur EV3
+        }
         robot.serrerPince();    // On attrape le palet
+	
         System.out.println("Palet attrapé avec succès !");
 
        
