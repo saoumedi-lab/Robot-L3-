@@ -4,54 +4,53 @@ import lejos.utility.Delay;
 public class RobotDeFou {
 
     public static void main(String[] args) {
-      System.out.println("Initialisation...");
 
-		while (!Button.ENTER.isDown()) { // pour arreter le robot si il y a un probleme 
+        System.out.println("Initialisation...");
 
-            Delay.msDelay(20); // Pause pour ne pas surcharger le processeur EV3
-        }
-
-        // Dès qu'on appuie sur ENTER, on sort de la boucle et on stoppe le robot
-        robot.stop();
         // 1. Instanciation des composants du robot
         Capteur capteur = new Capteur();
         Action robot = new Action();
 
-        System.out.println("Avance jusqu'à la détection d'une collision...");
 
-        // 2. Lance l'avance continue (vitesse de 150 mm/s)
-        robot.avancerSansFin(100);
+        System.out.println("Avance jusqu'a la détection du palet...");
 
-      
-       // 3. des qu'on detecte le palet on ouvre les pinces
-		while (capteurs.distance() > 0.40f && !Button.ESCAPE.isDown()) {
+        // 2. Lance l'avance continue (vitesse 100 mm/s)
+        robot.avancerSansFin(150);
+
+        // 3. Avance tant que le palet est à plus de 40 cm
+        while (capteur.distance() > 0.40f && !Button.ESCAPE.isDown()) {
             Delay.msDelay(20);
-		}
-
-        // 4. Arrêt immédiat lors de la pression sur le capteur de contact
-        robot.stop();
-        System.out.println("Obstacle détecté !");
-        robot.ouvrirPince();
-        robot.avancerSansFin(30);    // On avance jusqu'a ce que le capteur soit enclencher
-
-		while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
-            Delay.msDelay(20); // Pause pour ne pas surcharger le processeur EV3
         }
-        robot.serrerPince();    // On attrape le palet
-	
+
+        // 4. Dès qu'on s'approche du palet, on stoppe, on ouvre la pince et on termine l'approche
+        robot.stop();
+        System.out.println("Palet en vue ! Ouverture pince...");
+        robot.ouvrirPince();
+        
+        robot.avancerSansFin(50); // Avance lentement vers le palet
+
+        // Wait jusqu'au choc physique avec le capteur de pression
+        while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
+            Delay.msDelay(20);
+        }
+
+        // 5. Fermeture de la pince
+        robot.stop();
+        robot.serrerPince();
         System.out.println("Palet attrapé avec succès !");
 
-       
+        // 6. RETOUR : Demi-tour pour ramener le palet
+        robot.tournerD(180);
+        Delay.msDelay(1000);
 
-        // 6. RETOUR : On fait demi-tour pour ramener le palet dans le camp
-		robot.tournerD(180);
-        Delay.msDelay(1000); // Pause finale pour lire le message à l'écran
-		
-        // 7. DÉPÔT INTELLIGENT : On utilise la méthode 'lacher' qu'on a codée pour aller jusqu'à la ligne blanche
-		robot.lacher(capteur);
-        //8.Fermeture propre des capteurs
+        // 7. DÉPÔT INTELLIGENT
+        robot.lacher(capteur);
+
+        // 8. Fermeture propre des capteurs à la toute fin
         capteur.fermer();
+        System.out.println("Séquence terminée.");
     }
+}
 }
 robot.stop();
  }
