@@ -41,8 +41,8 @@ public class RobotDeFou {
         Delay.msDelay(1000); // Pause finale pour lire le message à l'écran
 
         // 7. DÉPÔT INTELLIGENT : On utilise la méthode 'lacher' qu'on a codée pour aller jusqu'à la ligne blanche
-		robot.lacher(capteurs);
+		robot.lacher(capteur);
         //8.Fermeture propre des capteurs
-        capteurs.fermer();
+        capteur.fermer();
     }
  }
