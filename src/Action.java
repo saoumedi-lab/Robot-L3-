@@ -1,4 +1,4 @@
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
+ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
 import lejos.robotics.chassis.WheeledChassis;
@@ -6,28 +6,29 @@ import lejos.robotics.navigation.MovePilot;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
 import lejos.utility.Delay; //test
-import lejos.hardware.motor.Motor; 
+import lejos.hardware.motor.Motor; 
 
 public class Action {
 	private final int SPEED = 300;
 	
-	private Chassis chassis ; 
+	private Chassis chassis ; 
 	private MovePilot pilot ;
 	private int boussole;
-	
+	private final EV3LargeRegulatedMotor moteurPince;
 	public Action() {
 		this(MotorPort.C,MotorPort.B);
 	}
 	
 	public Action(Port mG, Port mD) {
-		EV3LargeRegulatedMotor m1 = new EV3LargeRegulatedMotor(mG);//associe le port B au moteur m1 
+		EV3LargeRegulatedMotor m1 = new EV3LargeRegulatedMotor(mG);//associe le port B au moteur m1 
 		EV3LargeRegulatedMotor m2 = new EV3LargeRegulatedMotor(mD);//associe le port C au moteur m2
+		moteurPince = new EV3LargeRegulatedMotor(MotorPort.A);
+		
 		Wheel motorG = WheeledChassis.modelWheel(m1, 56).offset(-60);//diametre roue gauche + ecartement de 6 cm a gauche du centre
 		Wheel motorD = WheeledChassis.modelWheel(m2, 56).offset(60);//diametre roue droite + ecartement de 6 cm a droite du centre
 		chassis = new WheeledChassis(new Wheel[]{ motorG, motorD }, WheeledChassis.TYPE_DIFFERENTIAL);// traduit des centimetres ou des degres geometriques en tours de moteur reels.
 		pilot = new MovePilot(chassis);//calcule automatiquement la vitesse et le nombre de tours exacts que chaque moteur doit effectuer
 	}
-
 	
 	// methode qui arrete les roues du robot
 		public void stop() {
@@ -118,19 +119,21 @@ public class Action {
 	// ==========================================
 
 public void ouvrirPince() {
-		Motor.A.setSpeed(SPEED); 
-		Motor.A.forward(); 
+		moteurPince.setSpeed(SPEED); 
+		moteurPince.forward(); 
 		Delay.msDelay(2000);
-		Motor.A.stop();
+		moteurPince.stop();
 	}
 	// Méthode qui ferme la pince du robot
 
 public void serrerPince() {
-				Motor.A.setSpeed(SPEED); 
-				Motor.A.backward(); 
+				 moteurPince.setSpeed(SPEED); 
+				 moteurPince.backward(); 
 				Delay.msDelay(5000);
-			    Motor.A.stop();
+			     moteurPince.stop();
 			}
+
+}  
 public void lacher(Capteur capteurs) {
 		// 1. Le robot avance en continu vers la ligne
 		pilot.forward();
