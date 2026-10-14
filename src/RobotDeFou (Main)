@@ -4,8 +4,15 @@ import lejos.utility.Delay;
 public class RobotDeFou {
 
     public static void main(String[] args) {
-        System.out.println("Initialisation...");
+      System.out.println("Initialisation...");
 
+		while (!Button.ENTER.isDown()) { // pour arreter le robot si il y a un probleme 
+
+            Delay.msDelay(20); // Pause pour ne pas surcharger le processeur EV3
+        }
+
+        // Dès qu'on appuie sur ENTER, on sort de la boucle et on stoppe le robot
+        robot.stop();
         // 1. Instanciation des composants du robot
         Capteur capteur = new Capteur();
         Action robot = new Action();
@@ -39,10 +46,12 @@ public class RobotDeFou {
         // 6. RETOUR : On fait demi-tour pour ramener le palet dans le camp
 		robot.tournerD(180);
         Delay.msDelay(1000); // Pause finale pour lire le message à l'écran
-
+		
         // 7. DÉPÔT INTELLIGENT : On utilise la méthode 'lacher' qu'on a codée pour aller jusqu'à la ligne blanche
 		robot.lacher(capteur);
         //8.Fermeture propre des capteurs
         capteur.fermer();
     }
+}
+robot.stop();
  }
