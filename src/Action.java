@@ -73,8 +73,8 @@ public class Action {
 	 */
 
 	// Avance en continu 
-	public void avancerSansFin() {
-		pilot.setLinearSpeed(SPEED);
+	public void avancerSansFin(int speed) {
+		pilot.setLinearSpeed(speed);
 		pilot.forward();
 	}
 	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
