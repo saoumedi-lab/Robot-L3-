@@ -7,7 +7,7 @@ public class RobotDeFou {
         System.out.println("Initialisation...");
 
         // 1. Instanciation des composants du robot
-        Capteur capteurs = new Capteur();
+        Capteur capteur = new Capteur();
         Action robot = new Action();
 
         System.out.println("Avance jusqu'à la détection d'une collision...");
@@ -17,10 +17,8 @@ public class RobotDeFou {
 
       
        // 3. des qu'on detecte le palet on ouvre les pinces
-		while(capteurs.distance() > 0.30f) {
-			while (capteur.detecterPression() && Button.ESCAPE.isDown()) { //arrete si bouton presser
- 				robot.stop();
-        	}
+		while (capteurs.distance() > 0.40f && !Button.ESCAPE.isDown()) {
+            Delay.msDelay(20);
 		}
 
         // 4. Arrêt immédiat lors de la pression sur le capteur de contact
