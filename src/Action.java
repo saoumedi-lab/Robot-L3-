@@ -8,29 +8,43 @@ import lejos.hardware.port.Port;
 import lejos.utility.Delay; //test
 import lejos.hardware.motor.Motor;
 
+
+ // La classe Action gère l'ensemble des mouvements physiques du robot
+
 public class Action {
-	private final int SPEED = 300;
+
+	private final int SPEED = 300; // Vitesse de référence par défaut
 
 	private Chassis chassis ;
 	private MovePilot pilot ;
 	private int boussole;
 	private final EV3LargeRegulatedMotor moteurPince;
+
+	// Constructeur qui initialise les roues sur les ports C (gauche) et B (droit).
+	
 	public Action() {
 		this(MotorPort.C,MotorPort.B);
 	}
 
+
+	//configuration du châssis, les roues et le moteur de la pince.
+	 
 	public Action(Port mG, Port mD) {
 		EV3LargeRegulatedMotor m1 = new EV3LargeRegulatedMotor(mG);//associe le port B au moteur m1 
 		EV3LargeRegulatedMotor m2 = new EV3LargeRegulatedMotor(mD);//associe le port C au moteur m2
+		
 		moteurPince = new EV3LargeRegulatedMotor(MotorPort.A);
-
+		
+		// Modélisation des roues
 		Wheel motorG = WheeledChassis.modelWheel(m1, 56).offset(-60);//diametre roue gauche + ecartement de 6 cm a gauche du centre
 		Wheel motorD = WheeledChassis.modelWheel(m2, 56).offset(60);//diametre roue droite + ecartement de 6 cm a droite du centre
+		
 		chassis = new WheeledChassis(new Wheel[]{ motorG, motorD }, WheeledChassis.TYPE_DIFFERENTIAL);// traduit des centimetres ou des degres geometriques en tours de moteur reels.
+		
 		pilot = new MovePilot(chassis);//calcule automatiquement la vitesse et le nombre de tours exacts que chaque moteur doit effectuer
 	}
 
-	// methode qui arrete les roues du robot
+	// methode qui arrête les roues du robot
 	public void stop() {
 		pilot.stop();
 	}
@@ -54,10 +68,12 @@ public class Action {
 	// ==========================================
 
 	// Méthode qui fait avancer le robot de la distance en paramètre (en cm)
+	
 	public void avancer(double d) {
 		// pilot.travel attend des millimètres, donc on multiplie les cm par 10
 		pilot.travel(d * 10);
 	}
+	
 	//anciennce version de la méthode avancer 
 	/* moteurGauche.setSpeed(SPEED);
 		moteurDroit.setSpeed(SPEED); 
@@ -77,6 +93,7 @@ public class Action {
 		pilot.setLinearSpeed(speed);
 		pilot.forward();
 	}
+	
 	// Méthode qui fait reculer le robot de la distance en paramètre (en cm)
 	public void reculer(double d) {
 		// pilot.travel attend des millimètres, donc on multiplie les cm par 10
@@ -111,21 +128,23 @@ public class Action {
 		pilot.rotate(0.89*(double)angle,true);
 	} 
 
+	//méthode qui vérifie si le robot est en mouvement.
 	public boolean isMoving() { // renvoie true si le robot est en mouvement
 		return pilot.isMoving();
 	}
 	// ==========================================
 	// ================PINCE=====================      
 	// ==========================================
-
+	
+	//méthode qui ouvre la pince du robot pour libérer un palet.
 	public void ouvrirPince() {
 		moteurPince.setSpeed(SPEED);
 		moteurPince.forward();
 		Delay.msDelay(2000);
 		moteurPince.stop();
 	}
+	
 	// Méthode qui ferme la pince du robot
-
 	public void serrerPince() {
 		moteurPince.setSpeed(SPEED);
 		moteurPince.backward();
@@ -133,7 +152,7 @@ public class Action {
 		moteurPince.stop();
 	}
 
-
+	// Comportement intelligent de dépôt : avance en continu jusqu'à la ligne blanche,
 	public void lacher(Capteur capteurs) {
 		// 1. Le robot avance en continu vers la ligne
 		pilot.forward();
