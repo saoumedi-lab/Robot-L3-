@@ -2,26 +2,65 @@ import lejos.hardware.Button;
 import lejos.utility.Delay;
 
 public class RobotDeFou {
+ 
+    private static Action robot;
+    private static Capteur capteur;
 
-    public static void main(String[] args) {
-        System.out.println("Initialisation...");
+    //Pas precis et ne differencie pas un mur d'un palet. Il faut tester dans de vrai condition
+    public static void tournerVers() {
+    	
+        float distanceMin = 0.80f;
+        int indexDebut = 0;
+
+        float[] tab = new float[0];
         
-        // 1. Instanciation des capteurs et du robot
-        Capteur capteur = new Capteur();
-        Action robot = new Action();
+        robot.asyncTournerG(360);
 
-        // 2. Le robot commence à avancer en continu (vitesse de 150 mm/s)
+        while (robot.isMoving() && !Button.ESCAPE.isDown()) {
+            tab = capteur.recherche(tab);
+
+            int derniereValeur = tab.length - 1;
+
+            if (derniereValeur < 0) {
+                continue;
+            }
+
+            float distActuel = tab[derniereValeur];
+
+            if (distActuel != 0 && (distActuel + 0.1f) < distanceMin) {
+                indexDebut = derniereValeur;
+            }
+
+            if (distActuel != 0 && distActuel < distanceMin) {
+                distanceMin = distActuel;
+            }
+
+            if (tab.length > 1 && indexDebut != 0 && distActuel != 0 
+                    && (tab[derniereValeur - 1] - 0.1f < distanceMin) 
+                    && (distActuel + 0.1f > distanceMin)) {
+
+                robot.stop();
+            }
+            
+            Delay.msDelay(10);
+        }
+    }
+    
+    // Probablement un probleme dans le timing d'ouverture de la pince quand palet proche
+    public static void avancerEtPrendrePalet() {
+    	
+    	 // 1. Le robot commence à avancer en continu (vitesse de 150 mm/s)
         robot.avancerSansFin(200);
         
-        // 3. Avance tant que le palet est à plus de 40 cm
+        // 2. Avance tant que le palet est à plus de 40 cm
         while (capteur.distance() > 0.40f && !Button.ESCAPE.isDown()) {
             Delay.msDelay(20);
         }
         
-        // 4. Dès qu'on s'approche du palet, on stoppe, on ouvre la pince et on termine l'approche
+        // 3. Dès qu'on s'approche du palet, on stoppe, on ouvre la pince et on termine l'approche
         System.out.println("Palet en vue ! Ouverture pince...");
         robot.ouvrirPince();
-        robot.avancerSansFin(100); // Avance lentement vers le palet
+        robot.avancerSansFin(150); // Avance plus lentement vers le palet
 
         // 4. Boucle jusqu'à détection du palet par la pression (ou arrêt manuel avec ÉCHAP)
         while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
@@ -38,22 +77,24 @@ public class RobotDeFou {
             robot.serrerPince();
             System.out.println("Palet capture avec succes !");
         } 
-
-         // 7. RETOUR : Demi-tour pour ramener le palet
-        robot.tournerD(180);
-        Delay.msDelay(1000);
-
-        // 8. DÉPÔT INTELLIGENT
-        robot.lacher(capteur);
-
-        // 9. Fermeture propre des capteurs à la toute fin
-        capteur.fermer();
-        System.out.println("Séquence terminée.");
         
-        // Petite pause de sécurité avant de quitter
+        // Petite pause de sécurité
         Delay.msDelay(500);
         
-        // Forcer la sortie propre de la JVM si des threads leJOS restent accrochés
+    }
+    
+
+    public static void main(String[] args) {
+        System.out.println("Lancement de RobotDeFou...");
+    
+        robot = new Action();
+        capteur = new Capteur();
+        
+        RobotDeFou.tournerVers();
+        //RobotDeFou.avancerEtPrendrePalet();
+        
+        System.out.println("Fin du programme.");
+        capteur.fermer();
         System.exit(0);
     }
 }
