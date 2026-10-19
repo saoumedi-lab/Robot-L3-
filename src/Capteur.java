@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.port.Port;
@@ -167,6 +168,13 @@ public class Capteur {
 
 	 // déclare que le capteur d'ultrason a pour nom cs, il est créé des la création de l'objet, sur le port S4
     private EV3UltrasonicSensor cs = new EV3UltrasonicSensor(SensorPort.S4);
+
+	 //méthode utilisée dans la méthode tournerVers du principal qui récupère toutes les distance pendant la rotation du robot
+    public float[] recherche(float[] tab) {
+		tab = Arrays.copyOf(tab, tab.length + 1);
+		tab[tab.length-1]=distance();
+		return tab;
+	}
 	
 	// renvoie la distance entre le cptr et l'obstacle devant lui
 	public float distance() {
