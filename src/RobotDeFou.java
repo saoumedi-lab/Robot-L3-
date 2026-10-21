@@ -11,6 +11,7 @@ public class RobotDeFou {
     	
         float distanceMin = 0.80f;
         int indexDebut = 0;
+        boolean enCoursDeDetection = false;
 
         float[] tab = new float[0];
         
@@ -27,19 +28,46 @@ public class RobotDeFou {
 
             float distActuel = tab[derniereValeur];
 
-            if (distActuel != 0 && (distActuel + 0.1f) < distanceMin) {
-                indexDebut = derniereValeur;
-            }
+           // 1. Détecte le début de l'obstacle
+        if (distActuel != 0 && distActuel < distanceMin && !enCoursDeDetection) {
+            indexDebut = derniereValeur;
+            enCoursDeDetection = true;
+            distanceMin = distActuel;
+        }
 
-            if (distActuel != 0 && distActuel < distanceMin) {
+         //   if (distActuel != 0 && (distActuel + 0.1f) < distanceMin) {
+            //    indexDebut = derniereValeur;
+          //  }
+
+           // if (distActuel != 0 && distActuel < distanceMin) {
+           //     distanceMin = distActuel;
+       //     }
+
+          //  if (tab.length > 1 && indexDebut != 0 && distActuel != 0 
+              //      && (tab[derniereValeur - 1] - 0.1f < distanceMin) 
+                    // && (distActuel + 0.1f > distanceMin)) {
+
+               // robot.stop();
+         
+          // Maintient la distance minimale pendant qu'on passe devant l'objet
+            if (enCoursDeDetection && distActuel != 0 && distActuel < distanceMin) {
                 distanceMin = distActuel;
             }
 
-            if (tab.length > 1 && indexDebut != 0 && distActuel != 0 
-                    && (tab[derniereValeur - 1] - 0.1f < distanceMin) 
-                    && (distActuel + 0.1f > distanceMin)) {
+            // 2. Détecte la fin de l'obstacle (quand la distance s'éloigne à nouveau)
+            if (enCoursDeDetection && (distActuel > distanceMin + 0.15f || distActuel == 0)) {
+                int indexFin = derniereValeur;
+                enCoursDeDetection = false; // Ferme la fenêtre de détection
 
-                robot.stop();
+                // 3. INTÉGRATION : On appelle ta méthode estUnPalet ici !
+                if (estUnPalet(tab, indexDebut, indexFin)) {
+                    System.out.println("Palet confirmé par sa largeur ! Arrêt du robot.");
+                    robot.stop();
+                    break; // On sort de la boucle de recherche
+                } else {
+                    System.out.println("C'est un mur ou trop large, on continue...");
+                    distanceMin = 0.80f; // On réinitialise pour chercher le prochain objet
+                }
             }
             
             Delay.msDelay(10);
