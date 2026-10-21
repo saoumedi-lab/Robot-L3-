@@ -45,6 +45,23 @@ public class RobotDeFou {
             Delay.msDelay(10);
         }
     }
+// distingue un palet d'un mur 
+ public static boolean estUnPalet(float[] tab, int indexDebut, int indexFin) {
+        int largeurObstacle = indexFin - indexDebut;
+       
+        // Si le pic dure trop longtemps, c'est un mur (trop large)
+        // Si la durée est courte, c'est un petit objet (un palet)
+        // (Les seuils dépendent de la vitesse de rotation de ton robot et de la fréquence d'échantillonnage)
+        int seuilMaxLargeurPalet = 12;
+       
+        if (largeurObstacle > 0 && largeurObstacle <= seuilMaxLargeurPalet) {
+            System.out.println("Palet identifié (largeur correcte) !");
+            return true;
+        } else {
+            System.out.println("Mur ou obstacle large ignoré.");
+            return false;
+        }
+    }
     
     // Probablement un probleme dans le timing d'ouverture de la pince quand palet proche
     public static void avancerEtPrendrePalet() {
