@@ -77,40 +77,22 @@ public class RobotDeFou {
     
 // distingue un palet d'un mur 
  
-	    public static boolean estUnPalet(float[] tab, int indexDebut, int indexFin) {
-	        int largeur = indexFin - indexDebut;
-
-	        // Sécurité pour éviter un plantage
-	        if (indexDebut < 0 || indexFin > tab.length || largeur <= 0) {
-	            return false;
-	        }
-
-	        // Test 1 : l'objet est court (ton seuil d'avant, avec un minimum en plus)
-	        boolean courtOk = largeur >= 2 && largeur <= 12;
-
-	        // Test 2 : l'objet est plat (la distance change peu)
-	   	    float min =  Float.MAX_VALUE;
-	        float max = 0f;
-	        int nbValides = 0;
-	        
-	        for (int i = indexDebut; i < indexFin; i++) {
-	            float v = tab[i];
-	            if (v <= 0) continue; // Ignore les mesures invalides / zéros
-	            if (v < min) min = v;
-	            if (v > max) max = v;
-				nbValides++;
-	        }
-	        if(nbValides < 2) {
-	        	return false;
-	        }
-	        
-	        float ecart = max - min;
-	        boolean platOk = ecart < 0.05f;   // moins de 5 cm d'écart
-
-	        System.out.println("n=" + largeur + " ecart=" + (int) (ecart * 100) + "cm");
-
-	        return courtOk && platOk;
-	    }
+	   public static boolean estUnPalet(float[] tab, int indexDebut, int indexFin) {
+        int largeurObstacle = indexFin - indexDebut;
+       
+        // Si le pic dure trop longtemps, c'est un mur (trop large)
+        // Si la durée est courte, c'est un petit objet (un palet)
+        // (Les seuils dépendent de la vitesse de rotation de ton robot et de la fréquence d'échantillonnage)
+        int seuilMaxLargeurPalet = 12;
+       
+        if (largeurObstacle > 0 && largeurObstacle <= seuilMaxLargeurPalet) {
+            System.out.println("Palet identifié (largeur correcte) !");
+            return true;
+        } else {
+            System.out.println("Mur ou obstacle large ignoré.");
+            return false;
+        }
+    }
  
     // Probablement un probleme dans le timing d'ouverture de la pince quand palet proche
     public static void avancerEtPrendrePalet() {
