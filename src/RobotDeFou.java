@@ -89,8 +89,8 @@ public class RobotDeFou {
 	        boolean courtOk = largeur >= 2 && largeur <= 12;
 
 	        // Test 2 : l'objet est plat (la distance change peu)
-	        float min = tab[indexDebut];
-	        float max = tab[indexDebut];
+	   	    float min =  Float.MAX_VALUE
+	        float max = 0f;
 	        int nbValides = 0;
 	        
 	        for (int i = indexDebut; i < indexFin; i++) {
@@ -98,8 +98,9 @@ public class RobotDeFou {
 	            if (v <= 0) continue; // Ignore les mesures invalides / zéros
 	            if (v < min) min = v;
 	            if (v > max) max = v;
+				nbValides++;
 	        }
-	        if(nbValides == 0) {
+	        if(nbValides < 2) {
 	        	return false;
 	        }
 	        
