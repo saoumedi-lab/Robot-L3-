@@ -89,7 +89,7 @@ public class RobotDeFou {
 	        boolean courtOk = largeur >= 2 && largeur <= 12;
 
 	        // Test 2 : l'objet est plat (la distance change peu)
-	   	    float min =  Float.MAX_VALUE
+	   	    float min =  Float.MAX_VALUE;
 	        float max = 0f;
 	        int nbValides = 0;
 	        
