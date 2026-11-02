@@ -1,12 +1,11 @@
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.port.MotorPort;
+import lejos.hardware.port.Port;
 import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
 import lejos.robotics.chassis.WheeledChassis;
 import lejos.robotics.navigation.MovePilot;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.Port;
-import lejos.utility.Delay; //test
-import lejos.hardware.motor.Motor;
+import lejos.utility.Delay; //testc
 
 
  // La classe Action gère l'ensemble des mouvements physiques du robot
@@ -118,13 +117,13 @@ public class Action {
 
 	// methode qui permet de tourner le robot a droite d'un certain angle de manière asynchrone
 	public void asyncTournerG(int angle) { 
-		pilot.setAngularSpeed(50);
+		pilot.setAngularSpeed(100);
 		pilot.rotate(-0.89*(double)angle,true);
 	}
 
 	// methode qui permet de tourner le robot a gauche d'un certain angle de manière asynchrone
 	public void asyncTournerD(int angle) { 
-		pilot.setAngularSpeed(50);
+		pilot.setAngularSpeed(100);
 		pilot.rotate(0.89*(double)angle,true);
 	} 
 
