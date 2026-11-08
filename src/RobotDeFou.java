@@ -138,6 +138,38 @@ public class RobotDeFou {
 
         return -1.0f; // Aucun palet trouvé
     }
+
+	//envoie tru si le robot est face à un palet
+        public static boolean analyser () {
+        	
+        	ArrayList<Float> liste =new ArrayList<Float>();
+        	int resultat =scanner (robot, capteur, 360, liste);
+        	
+        	if (resultat != OK || liste.size()==0)
+        		return false;
+        	
+        	// passe de liste à tableau
+        	 float[] tab = new float[liste.size()];
+        	    for (int i = 0; i< liste.size(); i++) {
+        	        tab[i] = liste.get(i);
+        	    }
+        	    
+        	    //distance palet, -1 si pas palet (mur/ robot)
+        	    float distPalet = estUnPalet(tab);
+        	    if (distPalet< 0) {
+        	        System.out.println("Pas de palet");
+        	        return false;
+        	    }
+        	    
+        	    //tourne par pas, jusqu'à la distance devant le robot corresponde à celle du palet
+        	    int pas = 0;
+        	    while (Math.abs(capteur.distance() - distPalet)> 0.05f
+        	            && pas< 120 && !Button.ESCAPE.isDown()) {
+        	        robot.tournerG(3);
+        	        pas++;
+        	    }
+        	    return pas< 120;
+        }
  
     // Probablement un probleme dans le timing d'ouverture de la pince quand palet proche
     public static void avancerEtPrendrePalet() {
