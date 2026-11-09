@@ -41,24 +41,25 @@ public class RobotDeFou {
         }
     }
 
-    public static int estUnPalet(float[] tabOriginal) {
+  public static int estUnPalet(float[] tabOriginal) {
+        // Copie du tableau pour effacer les valeurs traitées au fur et à mesure sans modifier l'original
         float[] tab = new float[tabOriginal.length];
         System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
 
-        // Garde les distances strictement comprises entre 32 et 95 cm.
+        // Efface (mise à -1.0f) tout ce qui est hors zone : murs/coins (< 32 cm) et fond (> 95 cm)
         for (int i = 0; i < tab.length; i++) {
             if (tab[i] <= 0.32f || tab[i] >= 0.95f) {
                 tab[i] = -1.0f;
             }
         }
 
-        float tolerance = 0.10f; // Écart maximal au minimum : 10 cm.
+        float tolerance = 0.10f; // Tolérance de 10 cm pour regrouper les points d'un même objet
 
         while (true) {
             float distMin = Float.POSITIVE_INFINITY;
             int indexMin = -1;
 
-            // Cherche la plus petite distance encore valide.
+            // Recherche du point le plus proche (le sommet du palet)
             for (int i = 0; i < tab.length; i++) {
                 if (tab[i] > 0.32f && tab[i] < 0.95f && tab[i] < distMin) {
                     distMin = tab[i];
@@ -66,6 +67,7 @@ public class RobotDeFou {
                 }
             }
 
+            // Plus aucune valeur valide restante dans la zone
             if (indexMin == -1) {
                 return -1;
             }
@@ -73,13 +75,14 @@ public class RobotDeFou {
             int indexDebut = indexMin;
             int indexFin = indexMin;
 
-            // Étend le signal aux mesures voisines proches du minimum.
+            // Extension à gauche pour trouver le premier bord de l'objet
             while (indexDebut > 0
                     && tab[indexDebut - 1] > 0
                     && Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
                 indexDebut--;
             }
 
+            // Extension à droite pour trouver le second bord de l'objet
             while (indexFin < tab.length - 1
                     && tab[indexFin + 1] > 0
                     && Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
@@ -90,11 +93,11 @@ public class RobotDeFou {
             boolean largeurCorrecte = largeurSignal >= 4 && largeurSignal <= 10;
             boolean creuxVisible = false;
 
+            // Vérification de la forme en creux (profil \ /) par comparaison avec le tableau original
             if (indexDebut > 0 && indexFin < tabOriginal.length - 1) {
-                // Utilise le scan original pour lire le fond autour du signal.
                 float avant = tabOriginal[indexDebut - 1];
                 float apres = tabOriginal[indexFin + 1];
-                float marge = 0.05f; // 5 cm de différence sur chaque bord.
+                float marge = 0.05f; // 5 cm de saut de distance requis sur chaque bord
 
                 creuxVisible = avant >= tabOriginal[indexDebut] + marge
                         && apres >= tabOriginal[indexFin] + marge;
@@ -104,11 +107,12 @@ public class RobotDeFou {
                     + " | largeur=" + largeurSignal
                     + " | creux=" + creuxVisible);
 
+            // Palet validé : renvoie l'index du milieu pour s'orienter dessus
             if (largeurCorrecte && creuxVisible) {
                 return (indexDebut + indexFin) / 2;
             }
 
-            // Ignore tout le groupe rejeté, en conservant ses indices.
+            // Obstacle rejeté : effacement du groupe dans la copie pour chercher le candidat suivant
             for (int i = indexDebut; i <= indexFin; i++) {
                 tab[i] = -1.0f;
             }
