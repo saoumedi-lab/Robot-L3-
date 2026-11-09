@@ -43,7 +43,7 @@ public class RobotDeFou {
         liste.clear();
         
       
-        robot.asyncTournerG(angle);
+        robot.asyncTournerG(360);
 
        
         while (robot.isMoving()) { 
