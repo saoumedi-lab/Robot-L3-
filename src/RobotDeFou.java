@@ -211,7 +211,23 @@ public class RobotDeFou {
 
     public static void main(String[] args) {
         System.out.println("Lancement de RobotDeFou...");
-    
+       capteur = new Capteur();
+
+    try {
+        System.out.println("Appuie sur ENTER pour arreter.");
+
+        while (!Button.ENTER.isDown()) {
+            float distanceCm = capteur.distance() * 100;
+            System.out.println("Distance : " + distanceCm + " cm");
+
+            Delay.msDelay(100);
+        }
+    } finally {
+        capteur.fermer();
+    }
+
+    System.out.println("Mesures terminees.");
+}
         robot = new Action();
         capteur = new Capteur();
         
