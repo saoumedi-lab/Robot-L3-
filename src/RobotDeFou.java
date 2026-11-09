@@ -3,179 +3,210 @@ import lejos.utility.Delay;
 import java.util.ArrayList;
 
 public class RobotDeFou {
- 
+
     private static Action robot;
     private static Capteur capteur;
- 
-    public static final int OK = 0;
-    public static final int ARRET_BOUTON = 1;
-    public static final int ARRET_CONTACT = 2;
-    public static final int VIDE = 3;
-    
-    public static int scanner(Action robot, Capteur capteur, ArrayList<Float> liste) {
-        
+
+    private static final int OK = 0;
+    private static final int ARRET_BOUTON = 1;
+    private static final int ARRET_CONTACT = 2;
+
+    public static int scanner(Action robot, Capteur capteur,
+                              ArrayList<Float> liste) {
         liste.clear();
-        
-      
-        robot.asyncTournerG(360);
 
-       
-        while (robot.isMoving()) { 
-        	float distanceCm = capteur.distance() * 100;
-            System.out.println("Distance : " + distanceCm + " cm");
-           
-            if (Button.ESCAPE.isDown()) {
-                robot.stop(); 
-                return ARRET_BOUTON; 
+        try {
+            robot.asyncTournerG(360);
+
+            while (robot.isMoving()) {
+                if (Button.ESCAPE.isDown()) {
+                    return ARRET_BOUTON;
+                }
+
+                if (capteur.detecterPression()) {
+                    return ARRET_CONTACT;
+                }
+
+                // Une seule lecture : stockage en mètres, affichage en cm.
+                float distance = capteur.distance();
+                liste.add(distance);
+                System.out.println("Distance : " + distance * 100 + " cm");
+
+                Delay.msDelay(10);
             }
-          
-            if (capteur.detecterPression()) { 
-                robot.stop();
-                return ARRET_CONTACT;
-            } 
-          
-            liste.add(capteur.distance());
-           
 
-            Delay.msDelay(10); 
-        } 
-        
-     // delay vaut mieux faire cte pr tout le robot 
-       
-        
-        return OK;
+            return OK;
+        } finally {
+            robot.stop();
+        }
     }
+
     public static int estUnPalet(float[] tabOriginal) {
         float[] tab = new float[tabOriginal.length];
         System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
-        float tolerance = 0.05f;
+
+        // Garde les distances strictement comprises entre 32 et 95 cm.
+        for (int i = 0; i < tab.length; i++) {
+            if (tab[i] <= 0.32f || tab[i] >= 0.95f) {
+                tab[i] = -1.0f;
+            }
+        }
+
+        float tolerance = 0.10f; // Écart maximal au minimum : 10 cm.
 
         while (true) {
-            float distMin = 999.0f;
+            float distMin = Float.POSITIVE_INFINITY;
             int indexMin = -1;
 
+            // Cherche la plus petite distance encore valide.
             for (int i = 0; i < tab.length; i++) {
-                if (tab[i] > tolerance && tab[i] < distMin) {
+                if (tab[i] > 0.32f && tab[i] < 0.95f && tab[i] < distMin) {
                     distMin = tab[i];
                     indexMin = i;
                 }
             }
 
-            if (indexMin == -1) break;
+            if (indexMin == -1) {
+                return -1;
+            }
 
             int indexDebut = indexMin;
             int indexFin = indexMin;
 
-            while (indexDebut > 0 && tab[indexDebut - 1] > tolerance && Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
+            // Étend le signal aux mesures voisines proches du minimum.
+            while (indexDebut > 0
+                    && tab[indexDebut - 1] > 0
+                    && Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
                 indexDebut--;
             }
-            while (indexFin < tab.length - 1 && tab[indexFin + 1] > tolerance && Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
+
+            while (indexFin < tab.length - 1
+                    && tab[indexFin + 1] > 0
+                    && Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
                 indexFin++;
             }
 
-            int largeurSignal = (indexFin - indexDebut) + 1;
+            int largeurSignal = indexFin - indexDebut + 1;
+            boolean largeurCorrecte = largeurSignal >= 4 && largeurSignal <= 10;
+            boolean creuxVisible = false;
 
-            if (largeurSignal >= 4 && largeurSignal <= 10) {
-                // Renvoie le MILLIEU du palet (meilleure visée que juste le bord)
-                return (indexDebut + indexFin) / 2; 
-            } else if (largeurSignal >= 16) {
-                for (int i = indexDebut; i <= indexFin; i++) tab[i] = -tolerance;
-            } else {
-                tab[indexMin] = -tolerance;
+            if (indexDebut > 0 && indexFin < tabOriginal.length - 1) {
+                // Utilise le scan original pour lire le fond autour du signal.
+                float avant = tabOriginal[indexDebut - 1];
+                float apres = tabOriginal[indexFin + 1];
+                float marge = 0.05f; // 5 cm de différence sur chaque bord.
+
+                creuxVisible = avant >= tabOriginal[indexDebut] + marge
+                        && apres >= tabOriginal[indexFin] + marge;
+            }
+
+            System.out.println("Candidat : " + distMin * 100 + " cm"
+                    + " | largeur=" + largeurSignal
+                    + " | creux=" + creuxVisible);
+
+            if (largeurCorrecte && creuxVisible) {
+                return (indexDebut + indexFin) / 2;
+            }
+
+            // Ignore tout le groupe rejeté, en conservant ses indices.
+            for (int i = indexDebut; i <= indexFin; i++) {
+                tab[i] = -1.0f;
             }
         }
-
-        return -1; // Aucun palet trouvé
     }
 
-    
     public static boolean analyser() {
         ArrayList<Float> liste = new ArrayList<>();
         int resultat = scanner(robot, capteur, liste);
 
-        if (resultat != OK || liste.isEmpty()) return false;
+        System.out.println("Scan : code=" + resultat
+                + ", mesures=" + liste.size());
 
-        float[] tab = new float[liste.size()];
-        for (int i = 0; i < liste.size(); i++) tab[i] = liste.get(i);
-
-        int indexPalet = estUnPalet(tab);
-        if (indexPalet < 0) {
-            System.out.println("Pas de palet");
+        if (resultat != OK || liste.isEmpty() || Button.ESCAPE.isDown()) {
             return false;
         }
 
-        // Calcul direct de l'angle du palet par rapport à la rotation effectuée
-        // Exemple : si indexPalet = 50 sur 200 mesures => (50 / 200) * 360 = 90°
+        float[] tab = new float[liste.size()];
+        for (int i = 0; i < liste.size(); i++) {
+            tab[i] = liste.get(i);
+        }
+
+        int indexPalet = estUnPalet(tab);
+        if (indexPalet < 0 || Button.ESCAPE.isDown()) {
+            return false;
+        }
+
+        // Estime l'angle à partir de la position du signal dans le scan.
         float anglePalet = ((float) indexPalet / tab.length) * 360.0f;
+        System.out.println("Angle estime : " + anglePalet + " degres");
 
-        // Le robot tourne directement de cet angle vers la gauche
         robot.tournerG((int) anglePalet);
-
         return true;
     }
-    
-    
-    // Probablement un probleme dans le timing d'ouverture de la pince quand palet proche
+
     public static void avancerEtPrendrePalet() {
-    	
-    	 // 1. Le robot commence à avancer en continu (vitesse de 150 mm/s)
-        robot.avancerSansFin(200);
-        
-        // 2. Avance tant que le palet est à plus de 40 cm
-        while (capteur.distance() > 0.40f && !Button.ESCAPE.isDown()) {
-            Delay.msDelay(20);
-        }
-        
-        // 3. Dès qu'on s'approche du palet, on stoppe, on ouvre la pince et on termine l'approche
-        System.out.println("Palet en vue ! Ouverture pince...");
-        robot.ouvrirPince();
-        robot.avancerSansFin(150); // Avance plus lentement vers le palet
+        try {
+            robot.avancerSansFin(200);
 
-        // 4. Boucle jusqu'à détection du palet par la pression (ou arrêt manuel avec ÉCHAP)
-        while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
-            Delay.msDelay(20); // Pause pour ne pas surcharger le processeur EV3
-        }
-        
-        // 5. Arrêt immédiat dès que le palet touche le capteur
-        robot.stop();
+            while (capteur.distance() > 0.40f && !Button.ESCAPE.isDown()) {
+                Delay.msDelay(20);
+            }
 
-        // 6.Fermeture de la pince
-        if (!Button.ESCAPE.isDown()) {
-            System.out.println("Palet touche !");
-            System.out.println("Fermeture de la pince...");
-            robot.serrerPince();
-            System.out.println("Palet capture avec succes !");
-        } 
-        
-        // Petite pause de sécurité
-        Delay.msDelay(500);
-        
+            // Arrête les roues avant d'ouvrir la pince.
+            robot.stop();
+            if (Button.ESCAPE.isDown()) {
+                return;
+            }
+
+            System.out.println("Objet proche : ouverture de la pince.");
+            robot.ouvrirPince();
+
+            if (Button.ESCAPE.isDown()) {
+                return;
+            }
+
+            robot.avancerSansFin(150);
+
+            while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
+                Delay.msDelay(20);
+            }
+
+            robot.stop();
+
+            if (!Button.ESCAPE.isDown()) {
+                System.out.println("Contact detecte : fermeture de la pince.");
+                robot.serrerPince();
+                System.out.println("Pince fermee.");
+            }
+
+            Delay.msDelay(500);
+        } finally {
+            robot.stop();
+        }
     }
-    
 
     public static void main(String[] args) {
         System.out.println("Lancement de RobotDeFou...");
-    
+
         robot = new Action();
         capteur = new Capteur();
-        
-        System.out.println("=== Début de la recherche ===");
 
-       
-        // Lancement de l'analyse complet (scanner -> filtrage -> orientation)
-        boolean paletTrouveEtOriente = analyser();
-        
+        try {
+            System.out.println("=== Debut de la recherche ===");
 
-     
-        
-        if (paletTrouveEtOriente) {
-            System.out.println("Palet verrouillé ! Le robot est face au palet.");
-            // Placez ici l'action suivante (ex: robot.avancer();)
-        } else {
-            System.out.println("Échec : Aucun palet n'a pu être ciblé.");
+            if (analyser()) {
+                System.out.println("Palet possible : rotation terminee.");
+
+                // Active cette ligne apres avoir verifie la visee.
+                // avancerEtPrendrePalet();
+            } else {
+                System.out.println("Aucun palet cible ou recherche interrompue.");
+            }
+        } finally {
+            robot.stop();
+            capteur.fermer();
+        }
 
         System.out.println("Fin du programme.");
-        capteur.fermer();
-        System.exit(0);
-        }}
     }
+}
