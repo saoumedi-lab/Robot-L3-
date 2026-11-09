@@ -140,7 +140,9 @@ public class RobotDeFou {
         float anglePalet = ((float) indexPalet / tab.length) * 360.0f;
         System.out.println("Angle estime : " + anglePalet + " degres");
 
-        robot.tournerG((int) anglePalet);
+        if (anglePalet<180) robot.tournerG((int) anglePalet);
+        else robot.tournerD(360-(int)anglePalet);
+        
         return true;
     }
 
