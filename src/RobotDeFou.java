@@ -38,7 +38,7 @@ public class RobotDeFou {
     public static final int VIDE = 3;
 
     // La méthode scanner
-    public static int scanner(Action robot, Capteur capteur, int angle, ArrayList<Float> liste) {
+    public static int scanner(Action robot, Capteur capteur, ArrayList<Float> liste) {
         
         liste.clear();
         
