@@ -6,7 +6,10 @@ public class RobotDeFou {
  
     private static Action robot;
     private static Capteur capteur;
-   
+ 
+    private static final int OK = 0;
+    private static final int ARRET_BOUTON = 1;
+    private static final int ARRET_CONTACT = 2;
     
     
     public static int scanner(Action robot, Capteur capteur, ArrayList<Float> liste) {
