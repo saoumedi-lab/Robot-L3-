@@ -48,14 +48,14 @@ public class RobotDeFou {
     public static int estUnPalet(float[] tabOriginal) {
         float[] tab = new float[tabOriginal.length];
         System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
-        float tolerance = 0.1f;
+        float tolerance = 0.05f;
 
         while (true) {
             float distMin = 999.0f;
             int indexMin = -1;
 
             for (int i = 0; i < tab.length; i++) {
-                if (tab[i] > 0.1f && tab[i] < distMin) {
+                if (tab[i] > tolerance && tab[i] < distMin) {
                     distMin = tab[i];
                     indexMin = i;
                 }
@@ -66,10 +66,10 @@ public class RobotDeFou {
             int indexDebut = indexMin;
             int indexFin = indexMin;
 
-            while (indexDebut > 0 && tab[indexDebut - 1] > 0.05f && Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
+            while (indexDebut > 0 && tab[indexDebut - 1] > tolerance && Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
                 indexDebut--;
             }
-            while (indexFin < tab.length - 1 && tab[indexFin + 1] > 0.1f && Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
+            while (indexFin < tab.length - 1 && tab[indexFin + 1] > tolerance && Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
                 indexFin++;
             }
 
@@ -79,9 +79,9 @@ public class RobotDeFou {
                 // Renvoie le MILLIEU du palet (meilleure visée que juste le bord)
                 return (indexDebut + indexFin) / 2; 
             } else if (largeurSignal >= 16) {
-                for (int i = indexDebut; i <= indexFin; i++) tab[i] = -1.0f;
+                for (int i = indexDebut; i <= indexFin; i++) tab[i] = -tolerance;
             } else {
-                tab[indexMin] = -1.0f;
+                tab[indexMin] = -tolerance;
             }
         }
 
