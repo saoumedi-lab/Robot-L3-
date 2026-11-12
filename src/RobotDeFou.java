@@ -191,6 +191,40 @@ public class RobotDeFou {
         }
     }
 
+    //se place au centre du palet en balayant, puis avance jusqu'a lui
+    public static void centrerEtAvancer (float distPalet){
+         int balaie = 6; // on balaie de 5° de chaque coté
+        robot.tournrG(balaie);
+        ArraysList<Flaot> mesures = new ArraysLsit<Float>();
+        robot.asyncTournerD(2*balaie);
+        while (robot.isMoving() && !Button.ESCAPE.isDown()){
+            mesures.add(capteur.distance());
+            Delay.msDelay(10);
+        }
+
+        int n=mesures.size();
+        // repere le palet en ignorant les outliers
+        int premier=-1, dernier=-1;
+        for (int i=0; i<n; i++)
+            if (Math.abs(mesures.get(i) - distPalet) <= 0.05f){
+                if(premier == -1) premier =i;
+                dernier = i;
+            }
+        if (premier ==-1 || n ==0){
+            robot.tournerG(demi);
+            return;
+        }
+        //calcul le milieu du palet
+        float milieu = (premier + dernier) / 2f;
+        float angleMilieu = milieu * (2f * balaie) / n; 
+        int retour = Math.round(2 * balaie - angleMilieu);
+        robot.tournerG(retour);
+
+        avancerEtPrendrePalet();
+    }
+
+        
+
     public static void main(String[] args) {
         System.out.println("Lancement de RobotDeFou...");
 
