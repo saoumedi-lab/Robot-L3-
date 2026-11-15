@@ -11,8 +11,8 @@ public class RobotDeFou {
 	private static final int OK = 0;
 	private static final int ARRET_BOUTON = 1;
 	private static final int ARRET_CONTACT = 2;
-	
-  // -----------------------------scanner-----------------------------
+
+	// -----------------------------scanner-----------------------------
 	public static int scanner(Action robot, Capteur capteur,
 			ArrayList<Float> liste) {
 		liste.clear();
@@ -42,8 +42,8 @@ public class RobotDeFou {
 			robot.stop();
 		}
 	}
-	
-	 // ----------------------------- Analyser -----------------------------
+
+	// ----------------------------- Analyser -----------------------------
 	public static boolean analyser() {
 		ArrayList<Float> liste = new ArrayList<>();
 		int resultat = scanner(robot, capteur, liste);
@@ -74,8 +74,8 @@ public class RobotDeFou {
 
 		return true;
 	}
-	
-	 // ----------------------------- estUnPalet -----------------------------
+
+	// ----------------------------- estUnPalet -----------------------------
 	public static int estUnPalet(float[] tabOriginal) {
 		// Copie du tableau pour effacer les valeurs traitées au fur et à mesure sans modifier l'original
 		float[] tab = new float[tabOriginal.length];
@@ -156,85 +156,85 @@ public class RobotDeFou {
 
 	// ----------------------------- detecterTousLesPalets -----------------------------
 	public static ArrayList<Integer> detecterTousLesPalets(float[] tabOriginal) {
-        ArrayList<Integer> paletsValides = new ArrayList<>(); // stocke l'index du milieu de chaque palet validé
+		ArrayList<Integer> paletsValides = new ArrayList<>(); // stocke l'index du milieu de chaque palet validé
 
-        // tab : copie de tabOriginal pour effacer les objets déjà traités 
-        float[] tab = new float[tabOriginal.length];
-        System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
+		// tab : copie de tabOriginal pour effacer les objets déjà traités 
+		float[] tab = new float[tabOriginal.length];
+		System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
 
-        // Efface ce qui est hors zone : <= 32 cm (pince) et >= 95 cm (murs/fond)
-        for (int i = 0; i < tab.length; i++) {
-            if (tab[i] <= 0.32f || tab[i] >= 0.95f) {
-                tab[i] = -1.0f;
-            }
-        }
+		// Efface ce qui est hors zone : <= 32 cm (pince) et >= 95 cm (murs/fond)
+		for (int i = 0; i < tab.length; i++) {
+			if (tab[i] <= 0.32f || tab[i] >= 0.95f) {
+				tab[i] = -1.0f;
+			}
+		}
 
-        float tolerance = 0.10f; // écart max (10 cm) pour regrouper les points d'un même objet
+		float tolerance = 0.10f; // écart max (10 cm) pour regrouper les points d'un même objet
 
-        while (true) {
-            float distMin = Float.POSITIVE_INFINITY;
-            int indexMin = -1;
+		while (true) {
+			float distMin = Float.POSITIVE_INFINITY;
+			int indexMin = -1;
 
-            // Cherche le point le plus proche parmi ceux restants dans tab
-            for (int i = 0; i < tab.length; i++) {
-                if (tab[i] > 0.32f && tab[i] < 0.95f && tab[i] < distMin) {
-                    distMin = tab[i];
-                    indexMin = i;
-                }
-            }
+			// Cherche le point le plus proche parmi ceux restants dans tab
+			for (int i = 0; i < tab.length; i++) {
+				if (tab[i] > 0.32f && tab[i] < 0.95f && tab[i] < distMin) {
+					distMin = tab[i];
+					indexMin = i;
+				}
+			}
 
-            if (indexMin == -1) {
-                break; // plus aucun objet à analyser
-            }
+			if (indexMin == -1) {
+				break; // plus aucun objet à analyser
+			}
 
-            int indexDebut = indexMin;
-            int indexFin = indexMin;
+			int indexDebut = indexMin;
+			int indexFin = indexMin;
 
-            // Étend à gauche pour trouver le début de l'objet
-            while (indexDebut > 0
-                    && tab[indexDebut - 1] > 0
-                    && Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
-                indexDebut--;
-            }
+			// Étend à gauche pour trouver le début de l'objet
+			while (indexDebut > 0
+					&& tab[indexDebut - 1] > 0
+					&& Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
+				indexDebut--;
+			}
 
-            // Étend à droite pour trouver la fin de l'objet
-            while (indexFin < tab.length - 1
-                    && tab[indexFin + 1] > 0
-                    && Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
-                indexFin++;
-            }
+			// Étend à droite pour trouver la fin de l'objet
+			while (indexFin < tab.length - 1
+					&& tab[indexFin + 1] > 0
+					&& Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
+				indexFin++;
+			}
 
-            int largeurSignal = indexFin - indexDebut + 1;
-            boolean largeurCorrecte = largeurSignal >= 4 && largeurSignal <= 10; // largeur attendue d'un palet, a changer 
-            boolean creuxVisible = false;
+			int largeurSignal = indexFin - indexDebut + 1;
+			boolean largeurCorrecte = largeurSignal >= 4 && largeurSignal <= 10; // largeur attendue d'un palet, a changer 
+			boolean creuxVisible = false;
 
-            // Vérifie dans tabOriginal qu'il y a un creux de 5 cm avant et après l'objet (évite les murs)
-            if (indexDebut > 0 && indexFin < tabOriginal.length - 1) {
-                float avant = tabOriginal[indexDebut - 1];
-                float apres = tabOriginal[indexFin + 1];
-                float marge = 0.05f;
+			// Vérifie dans tabOriginal qu'il y a un creux de 5 cm avant et après l'objet (évite les murs)
+			if (indexDebut > 0 && indexFin < tabOriginal.length - 1) {
+				float avant = tabOriginal[indexDebut - 1];
+				float apres = tabOriginal[indexFin + 1];
+				float marge = 0.05f;
 
-                creuxVisible = avant >= tabOriginal[indexDebut] + marge
-                        && apres >= tabOriginal[indexFin] + marge;
-            }
+				creuxVisible = avant >= tabOriginal[indexDebut] + marge
+						&& apres >= tabOriginal[indexFin] + marge;
+			}
 
-            // Si valide, ajoute l'index du centre du palet à la liste
-            if (largeurCorrecte && creuxVisible) {
-                int indexCentre = (indexDebut + indexFin) / 2;
-                paletsValides.add(indexCentre);
-                System.out.println("Palet valide ajoute : index=" + indexCentre
-                        + " | dist=" + (tabOriginal[indexCentre] * 100) + " cm");
-            }
+			// Si valide, ajoute l'index du centre du palet à la liste
+			if (largeurCorrecte && creuxVisible) {
+				int indexCentre = (indexDebut + indexFin) / 2;
+				paletsValides.add(indexCentre);
+				System.out.println("Palet valide ajoute : index=" + indexCentre
+						+ " | dist=" + (tabOriginal[indexCentre] * 100) + " cm");
+			}
 
-            // Efface cet objet dans tab (-1.0f) pour passer au suivant au prochain tour
-            for (int i = indexDebut; i <= indexFin; i++) {
-                tab[i] = -1.0f;
-            }
-        }
+			// Efface cet objet dans tab (-1.0f) pour passer au suivant au prochain tour
+			for (int i = indexDebut; i <= indexFin; i++) {
+				tab[i] = -1.0f;
+			}
+		}
 
-        return paletsValides;
-    }
-	
+		return paletsValides;
+	}
+
 	// ----------------------------- avancerEtPrendrePalet -----------------------------
 	public static void avancerEtPrendrePalet() {
 		try {
@@ -277,7 +277,7 @@ public class RobotDeFou {
 		}
 	}
 
-	
+
 	// ----------------------------- centrerEtAvancer -----------------------------
 	//se place au centre du palet en balayant, puis avance jusqu'a lui
 	public static void centrerEtAvancer (float distPalet){
@@ -310,9 +310,39 @@ public class RobotDeFou {
 
 		avancerEtPrendrePalet();
 	}
-	
-	
-	
+
+	// Compare les distances dans tabOriginal et renvoie l'index du palet le plus proche
+	public static int trouverPaletPlusProche(float[] tabOriginal, ArrayList<Integer> candidats) {
+		if (candidats.isEmpty()) {
+			return -1; // aucun palet trouvé
+		}
+
+		int indexPlusProche = candidats.get(0); // prend le 1er palet comme référence
+		float distPlusProche = tabOriginal[indexPlusProche];
+
+		// Compare avec les autres palets pour garder la plus petite distance
+		for (int i = 1; i < candidats.size(); i++) {
+			int indexActuel = candidats.get(i);
+			float distActuelle = tabOriginal[indexActuel];
+
+			if (distActuelle < distPlusProche) {
+				distPlusProche = distActuelle;
+				indexPlusProche = indexActuel;
+			}
+		}
+
+		System.out.println("Total palets : " + candidats.size()
+		+ " | Cible la plus proche : " + (distPlusProche * 100) + " cm");
+		return indexPlusProche;
+	}
+
+	// Nvl version : utilise detecterTousLesPalets et renvoie le plus proche 
+	//ArrayList<Integer> candidats = detecterTousLesPalets(tabOriginal);
+	//	return trouverPaletPlusProche(tabOriginal, candidats);
+	//}
+
+
+
 
 
 	public static void main(String[] args) {
