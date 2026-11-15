@@ -299,7 +299,7 @@ public class RobotDeFou {
 				dernier = i;
 			}
 		if (premier ==-1 || n ==0){
-			robot.tournerG(demi);
+			robot.tournerG(balai);
 			return;
 		}
 		//calcul le milieu du palet
