@@ -262,12 +262,6 @@ public class RobotDeFou {
 		return indexPlusProche;
 	}
 
-	public static void qualif() {
-		// Exemple d'utilisation de la boussole pour se remettre face au camp adverse (0°) :
-		// if (boussole > 0) { robot.tournerD(boussole); }
-		// else if (boussole < 0) { robot.tournerG(-boussole); }
-		// boussole = 0;
-	}
 
 	public static void main(String[] args) {
 		System.out.println("Lancement de RobotDeFou...");
