@@ -298,31 +298,55 @@ public class RobotDeFou {
 	}
 
 	
-public static void debut(boolean campAdverse) {
 
-		
-	    int angle = campAdverse ? 45 : -45;
-	    avancerEtPrendrePalet();
-	    // 1. Contournement initial
-	    if (angle > 0) {
-	        robot.tournerD(angle);
-	    } else {
-	        robot.tournerG(-angle);
-	    }
 
-	    // 2. Avancer de 15 cm
-	    robot.avancer(15);
+public static void debut(boolean campGauche) {
 
-	    // 3. Revenir dans l'axe initial
-	    if (angle > 0) {
-	        robot.tournerG(angle);
-	    } else {
-	        robot.tournerD(-angle);
-	    }
-	    robot.avancer(250);
-	    
-	    analyser();
-	}
+    // 1. Contournement initial
+    int angle = campGauche ? 45 : -45;
+
+    if (angle > 0) {
+        robot.tournerD(45);
+    } else {
+        robot.tournerG(45);
+    }
+
+    robot.avancer(15);
+
+    if (angle > 0) {
+        robot.tournerG(45);
+    } else {
+        robot.tournerD(45);
+    }
+
+    // 2. Chercher et récupérer le premier palet
+    analyser();
+    avancerEtPrendrePalet();
+
+    // 3. Aller vers le camp adverse
+    robot.tournerD(180);
+    robot.avancer(250);
+
+    // Déposer le premier palet
+    robot.lacher(capteur);
+
+    // 4. Se retourner vers le terrain
+    robot.tournerD(180);
+
+    // 5. Chercher et récupérer le deuxième palet
+    analyser();
+    avancerEtPrendrePalet();
+
+    // 6. Retourner au camp adverse
+    robot.tournerD(180);
+    robot.avancer(250);
+
+    // Déposer le deuxième palet
+    robot.lacher(capteur);
+
+    robot.stop();
+}
+
 
 	public static void main(String[] args) {
 
