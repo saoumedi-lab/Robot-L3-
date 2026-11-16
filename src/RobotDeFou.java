@@ -298,10 +298,11 @@ public class RobotDeFou {
 	}
 
 	
-	public static void debut(boolean campAdverse) {
+public static void debut(boolean campAdverse) {
 
+		
 	    int angle = campAdverse ? 45 : -45;
-
+	    avancerEtPrendrePalet();
 	    // 1. Contournement initial
 	    if (angle > 0) {
 	        robot.tournerD(angle);
@@ -318,6 +319,9 @@ public class RobotDeFou {
 	    } else {
 	        robot.tournerD(-angle);
 	    }
+	    robot.avancer(250);
+	    
+	    analyser();
 	}
 
 	public static void main(String[] args) {
