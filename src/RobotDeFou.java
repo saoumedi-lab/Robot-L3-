@@ -6,7 +6,14 @@ public class RobotDeFou {
 
 	private static Action robot;
 	private static Capteur capteur;
-	
+	/**
+	 * Associe les moteurs et les capteurs aux méthodes du robot.
+	 * Les objets sont créés par le test puis réutilisés ici.
+	 */
+	public static void initialiser(Action action, Capteur capteurs) {
+	    robot = action;
+	    capteur = capteurs;
+	}
 	// Boussole : 0 = axe de départ (face au camp adverse). Gauche (+), Droite (-)
 	private static int boussole = 0;
 
