@@ -1,84 +1,242 @@
 import lejos.hardware.Button;
 
+/**
+ * Tests manuels de la classe Capteur.
+ *
+ * Les capteurs doivent être branchés sur :
+ * S2 : couleur ; S3 : contact ; S4 : ultrasons.
+ *
+ * Exécuter cette classe sur la brique EV3.
+ */
 public class TestCapteur {
 
-	/** Objet donnant accès aux trois capteurs du robot. */
-	private Capteur capteur = new Capteur();
+    private Capteur capteur = new Capteur();
 
-	/**
-	 * Vérifie les deux états du capteur de contact.
-	 * Résultats attendus : false au repos, true lorsque le bouton est appuyé.
-	 */
-	public void testDetecterPression() {
-		System.out.println("Relache le capteur de contact.");
-		System.out.println("Appuie sur un bouton EV3.");
-		Button.waitForAnyPress();
+    /**
+     * Vérifie les états relâché, appuyé, puis relâché
+     * du capteur de contact.
+     */
+    public void testDetecterPression() {
+        System.out.println("TEST : detecterPression");
 
-		System.out.println("Attendu : false");
-		System.out.println("Obtenu : " + capteur.detecterPression());
+        System.out.println("Relache le contact puis appuie sur ENTER.");
+        Button.ENTER.waitForPressAndRelease();
 
-		System.out.println("Maintiens le contact enfonce.");
-		System.out.println("Appuie sur un bouton EV3.");
-		Button.waitForAnyPress();
+        boolean repos = capteur.detecterPression();
 
-		System.out.println("Attendu : true");
-		System.out.println("Obtenu : " + capteur.detecterPression());
+        System.out.println("Attendu : false");
+        System.out.println("Obtenu : " + repos);
+        System.out.println("Test reussi : " + !repos);
 
-		Button.waitForAnyPress();
-	}
+        System.out.println("Maintiens le contact puis appuie sur ENTER.");
+        Button.ENTER.waitForPressAndRelease();
 
-	/**
-	 * Vérifie la distance mesurée devant le capteur à ultrasons.
-	 * La mesure est exprimée en mètres.
-	 */
-	public void testDistance() {
-		System.out.println("Place une surface a 20 cm");
-		System.out.println("devant le capteur, puis appuie.");
-		Button.waitForAnyPress();
+        boolean appuye = capteur.detecterPression();
 
-		System.out.println("Attendu : environ 0.20 m");
-		System.out.println("Obtenu : " + capteur.distance() + " m");
+        System.out.println("Attendu : true");
+        System.out.println("Obtenu : " + appuye);
+        System.out.println("Test reussi : " + appuye);
 
-		Button.waitForAnyPress();
-	}
+        System.out.println("Relache le contact puis appuie sur ENTER.");
+        Button.ENTER.waitForPressAndRelease();
 
-	/**
-	 * Vérifie la reconnaissance d'une surface rouge.
-	 * Le capteur doit être placé à sa hauteur habituelle de fonctionnement.
-	 */
-	public void testGetCouleur() {
-		System.out.println("Place le capteur sur du rouge.");
-		System.out.println("Appuie sur un bouton EV3.");
-		Button.waitForAnyPress();
+        boolean relache = capteur.detecterPression();
 
-		String couleur = capteur.getCouleur();
+        System.out.println("Attendu : false");
+        System.out.println("Obtenu : " + relache);
+        System.out.println("Test reussi : " + !relache);
 
-		System.out.println("Attendu : rouge");
-		System.out.println("Obtenu : " + couleur);
-		System.out.println("Test reussi : " + "rouge".equals(couleur));
+        Button.ENTER.waitForPressAndRelease();
+    }
 
-		Button.waitForAnyPress();
-	}
+    /**
+     * Vérifie la mesure de distance à 20, 40 et 60 cm.
+     * La tolérance proposée est de 2 cm.
+     */
+    public void testDistance() {
+        System.out.println("TEST : distance");
 
-	/**
-	 * Vérifie le calcul de distance entre deux couleurs identiques.
-	 * Le résultat attendu est zéro.
-	 */
-	public void testDistanceClr() {
-		float[] couleur1 = {0.12f, 0.12f, 0.11f};
-		float[] couleur2 = {0.12f, 0.12f, 0.11f};
+        int[] distancesCm = {20, 40, 60};
 
-		float resultat = capteur.distanceClr(couleur1, couleur2);
+        for (int distanceCm : distancesCm) {
+            System.out.println("Place une surface plane a "
+                    + distanceCm + " cm devant le capteur.");
+            System.out.println("ENTER pour mesurer.");
+            Button.ENTER.waitForPressAndRelease();
 
-		System.out.println("Attendu : 0.0");
-		System.out.println("Obtenu : " + resultat);
-		System.out.println("Test reussi : " + (resultat == 0.0f));
+            float attendu = distanceCm / 100.0f;
+            float obtenu = capteur.distance();
 
-		Button.waitForAnyPress();
-	}
+            boolean reussi = obtenu > 0
+                    && !Float.isNaN(obtenu)
+                    && !Float.isInfinite(obtenu)
+                    && Math.abs(obtenu - attendu) <= 0.02f;
 
-	
-	public static void main(String[] args) {
-		
-	}
+            System.out.println("Attendu : " + attendu + " m");
+            System.out.println("Obtenu : " + obtenu + " m");
+            System.out.println("Test reussi : " + reussi);
+
+            Button.ENTER.waitForPressAndRelease();
+        }
+    }
+
+    /**
+     * Vérifie les noms des huit surfaces de référence.
+     * Conserver la hauteur habituelle du capteur et un éclairage stable.
+     */
+    public void testGetCouleur() {
+        System.out.println("TEST : getCouleur");
+
+        String[] couleurs = {
+            "fond", "blanc", "vert", "gris",
+            "bleu", "rouge", "noir", "jaune"
+        };
+
+        for (String attendue : couleurs) {
+            System.out.println("Place le capteur sur : " + attendue);
+            System.out.println("ENTER pour mesurer.");
+            Button.ENTER.waitForPressAndRelease();
+
+            // Première lecture pour renouveler l'historique du filtre.
+            capteur.getCouleur();
+            String obtenue = capteur.getCouleur();
+
+            System.out.println("Attendu : " + attendue);
+            System.out.println("Obtenu : " + obtenue);
+            System.out.println("Test reussi : "
+                    + attendue.equals(obtenue));
+
+            Button.ENTER.waitForPressAndRelease();
+        }
+
+        System.out.println("Pour verifier 'inconnu', utiliser une surface");
+        System.out.println("dont le RGB est hors de toutes les references.");
+        System.out.println("Une autre couleur ne garantit pas ce resultat.");
+        Button.ENTER.waitForPressAndRelease();
+    }
+
+    /**
+     * Vérifie le calcul de distance RGB avec des valeurs connues,
+     * ainsi que la symétrie du calcul.
+     */
+    public void testDistanceClr() {
+        System.out.println("TEST : distanceClr");
+
+        float[] couleur1 = {0.0f, 0.0f, 0.0f};
+        float[] couleur2 = {0.03f, 0.04f, 0.0f};
+
+        float identiques = capteur.distanceClr(couleur1, couleur1);
+        float differentes = capteur.distanceClr(couleur1, couleur2);
+        float inverse = capteur.distanceClr(couleur2, couleur1);
+
+        System.out.println("Couleurs identiques :");
+        System.out.println("Attendu : 0.0");
+        System.out.println("Obtenu : " + identiques);
+        System.out.println("Test reussi : " + (identiques == 0.0f));
+
+        // Racine de (0,03² + 0,04²) = 0,05.
+        System.out.println("Couleurs differentes :");
+        System.out.println("Attendu : environ 0.05");
+        System.out.println("Obtenu : " + differentes);
+        System.out.println("Test reussi : "
+                + (Math.abs(differentes - 0.05f) < 0.000001f));
+
+        System.out.println("Symetrie du calcul :");
+        System.out.println("Test reussi : "
+                + (Math.abs(differentes - inverse) < 0.000001f));
+
+        Button.ENTER.waitForPressAndRelease();
+    }
+
+    /**
+     * Vérifie que recherche() ajoute une seule mesure à la fin
+     * du tableau, conserve les anciennes valeurs et renvoie
+     * un nouveau tableau.
+     */
+    public void testRecherche() {
+        System.out.println("TEST : recherche");
+        System.out.println("Place une surface plane a 40 cm.");
+        System.out.println("ENTER pour mesurer.");
+        Button.ENTER.waitForPressAndRelease();
+
+        float[] original = {0.20f, 0.30f};
+        float[] resultat = capteur.recherche(original);
+
+        boolean tailleCorrecte = resultat.length == 3;
+
+        boolean anciennesValeursConservees = tailleCorrecte
+                && resultat[0] == 0.20f
+                && resultat[1] == 0.30f;
+
+        boolean originalInchange = original.length == 2
+                && original[0] == 0.20f
+                && original[1] == 0.30f;
+
+        boolean mesureCorrecte = tailleCorrecte
+                && !Float.isNaN(resultat[2])
+                && !Float.isInfinite(resultat[2])
+                && Math.abs(resultat[2] - 0.40f) <= 0.02f;
+
+        System.out.println("Taille attendue : 3");
+        System.out.println("Taille obtenue : " + resultat.length);
+        System.out.println("Anciennes valeurs conservees : "
+                + anciennesValeursConservees);
+        System.out.println("Original inchange : " + originalInchange);
+        System.out.println("Nouveau tableau : " + (resultat != original));
+
+        if (tailleCorrecte) {
+            System.out.println("Mesure ajoutee : " + resultat[2] + " m");
+        }
+
+        System.out.println("Mesure proche de 40 cm : " + mesureCorrecte);
+        Button.ENTER.waitForPressAndRelease();
+    }
+
+    /**
+     * Vérifie la libération des trois ports en fermant les capteurs,
+     * puis en créant un nouvel objet Capteur.
+     *
+     * En cas d'échec de réouverture, l'erreur est propagée.
+     */
+    public void testFermer() {
+        System.out.println("TEST : fermer");
+        System.out.println("ENTER pour fermer puis rouvrir les capteurs.");
+        Button.ENTER.waitForPressAndRelease();
+
+        capteur.fermer();
+        capteur = null;
+
+        // Si un port reste occupé, cette création peut échouer.
+        capteur = new Capteur();
+
+        System.out.println("Les trois capteurs ont ete rouverts.");
+        System.out.println("Test reussi : aucune erreur de port.");
+
+        Button.ENTER.waitForPressAndRelease();
+    }
+
+    /**
+     * Lance les tests sélectionnés et ferme les capteurs à la fin.
+     */
+    public static void main(String[] args) {
+        TestCapteur tests = new TestCapteur();
+
+        try {
+            tests.testDetecterPression();
+
+            // Active les autres tests souhaites.
+            // tests.testDistance();
+            // tests.testGetCouleur();
+            // tests.testDistanceClr();
+            // tests.testRecherche();
+            // tests.testFermer();
+
+        } finally {
+            if (tests.capteur != null) {
+                tests.capteur.fermer();
+            }
+        }
+
+        System.out.println("Fin des tests.");
+    }
 }
