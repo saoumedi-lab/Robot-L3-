@@ -210,43 +210,68 @@ public class RobotDeFou {
 	}
 
 	// ----------------------------- centrerEtAvancer -----------------------------
-	public static void centrerEtAvancer(float distPalet) {
-		int balaie = 6; // balaie de 6° de chaque côté
-		robot.tournerG(balaie);
-		ajouterboussole(balaie); // Mise à jour boussole
-
-		ArrayList<Float> mesures = new ArrayList<Float>();
-		robot.asyncTournerD(2 * balaie);
-		while (robot.isMoving() && !Button.ESCAPE.isDown()) {
-			mesures.add(capteur.distance());
-			Delay.msDelay(10);
-		}
-		ajouterboussole(-(2 * balaie)); // Mise à jour boussole après le balayage à droite
-
-		int n = mesures.size();
-		int premier = -1, dernier = -1;
-		for (int i = 0; i < n; i++) {
-			if (Math.abs(mesures.get(i) - distPalet) <= 0.05f) {
-				if (premier == -1) premier = i;
-				dernier = i;
+	public static void centrerEtAvancer (float[] tabOriginal, ArrayList<Integer> candidats) {
+        	
+        	//cherche le palais le plus proche parmi les palets détectés
+        	int indexPalet = trouverPaletPlusProche (tabOriginal, candidats);
+        	
+        	 // Si aucun palet n'a été trouvé (index = -1)
+        	if (indexPalet == -1 || Button.ESCAPE.isDown()) {
+        		return;
+        	}
+        	
+        	//On récupère la distance initiale du palet, On utilise l'index trouvé pour retrouver la distance
+        	float distPrecedente=tabOriginal[indexPalet];
+        	
+        	// Distance à partir de laquelle le robot considère qu'il est suffisamment proche du palet pour le prendre.
+        	final float DistancePrise = 0.35f;
+        	
+        	//Tolérance qui permet d'éviter de réagir à une petite variation de mesure de capteur
+        	final float Tolerance = 0.03f;
+        	
+        	while (!Button.ESCAPE.isDown()) {
+        		//Si le robot est déjà à 40 cm ou moins du palet, plus besoin d'avancer
+        		if(distPrecedente <= DistancePrise) {
+        			break;
+        		}
+        		robot.avancerSansFin(5);
+        		boolean decale = false;
+        		
+        		while(!Button.ESCAPE.isDown()) {
+        			
+        			float distActuelle = capteur.distance();
+        			
+        			if(distActuelle <=0) {
+        				robot.stop();
+        				return;
+        				}
+					// Si le capteur renvoie une valeur nulle ou négative, la mesure n'est pas exploitable.
+        			if (distActuelle <= DistancePrise) {
+        				robot.stop();
+        				distPrecedente= distActuelle;
+        				break;
+        			}
+        			if (distActuelle > distPrecedente + Tolerance) {
+        				robot.stop();
+        				decale = true;
+        				break;
+        			}
+        			distPrecedente= distActuelle; 
+        			Delay.msDelay(20);
+        		}
+        		robot.stop();
+        		if (Button.ESCAPE.isDown()) {
+        			return;
+        		}
+        		if (decale) {
+        		}	
 			}
-		}
-		if (premier == -1 || n == 0) {
-			robot.tournerG(balaie);
-			ajouterboussole(balaie); // Mise à jour boussole
-			return;
-		}
-		
-		// Calcul du milieu du palet
-		float milieu = (premier + dernier) / 2f;
-		float angleMilieu = milieu * (2f * balaie) / n;
-		int retour = Math.round((2 * balaie) - angleMilieu);
-		
-		robot.tournerG(retour);
-		ajouterboussole(retour); // Mise à jour boussole
-
-		avancerEtPrendrePalet();
-	}
+        	robot.stop(); 
+        	if (!Button.ESCAPE.isDown()) {
+				
+        		avancerEtPrendrePalet();
+        	}
+        }
 
 	// ----------------------------- trouverPaletPlusProche -----------------------------
 	public static int trouverPaletPlusProche(float[] tabOriginal, ArrayList<Integer> candidats) {
