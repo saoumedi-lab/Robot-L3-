@@ -204,6 +204,9 @@ public class RobotDeFou {
 		} finally {
 			robot.stop();
 		}
+		if (Button.ESCAPE.isDown()) {
+    return;
+}
 	}
 
 	// ----------------------------- centrerEtAvancer -----------------------------
