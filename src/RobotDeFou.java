@@ -1,20 +1,21 @@
 import java.util.ArrayList;
-
 import lejos.hardware.Button;
 import lejos.utility.Delay;
 
-public class Robotdefou {
+public class RobotDeFou {
 
 	private static Action robot;
 	private static Capteur capteur;
+	
+	// Boussole : 0 = axe de départ (face au camp adverse). Gauche (+), Droite (-)
+	private static int boussole = 0;
 
 	private static final int OK = 0;
 	private static final int ARRET_BOUTON = 1;
 	private static final int ARRET_CONTACT = 2;
 
-	// -----------------------------scanner-----------------------------
-	public static int scanner(Action robot, Capteur capteur,
-			ArrayList<Float> liste) {
+	// ----------------------------- scanner -----------------------------
+	public static int scanner(Action robot, Capteur capteur, ArrayList<Float> liste) {
 		liste.clear();
 
 		try {
@@ -32,7 +33,7 @@ public class Robotdefou {
 				// Une seule lecture : stockage en mètres, affichage en cm.
 				float distance = capteur.distance();
 				liste.add(distance);
-				System.out.println("Distance : " + distance * 100 + " cm");
+				System.out.println("Distance : " + (distance * 100) + " cm");
 
 				Delay.msDelay(10);
 			}
@@ -45,11 +46,10 @@ public class Robotdefou {
 
 	// ----------------------------- Analyser -----------------------------
 	public static boolean analyser() {
-		ArrayList<Float> liste = new ArrayList<>();
+		ArrayList<Float> liste = new ArrayList<Float>();
 		int resultat = scanner(robot, capteur, liste);
 
-		System.out.println("Scan : code=" + resultat
-				+ ", mesures=" + liste.size());
+		System.out.println("Scan : code=" + resultat + ", mesures=" + liste.size());
 
 		if (resultat != OK || liste.isEmpty() || Button.ESCAPE.isDown()) {
 			return false;
@@ -60,41 +60,63 @@ public class Robotdefou {
 			tab[i] = liste.get(i);
 		}
 
-		int indexPalet = estUnPalet(tab);
+		// Détection de tous les palets et sélection du plus proche
+		ArrayList<Integer> candidats = detecterTousLesPalets(tab);
+		int indexPalet = trouverPaletPlusProche(tab, candidats);
+
 		if (indexPalet < 0 || Button.ESCAPE.isDown()) {
 			return false;
 		}
 
-		// Estime l'angle à partir de la position du signal dans le scan.
+		// Estime l'angle à partir de la position du signal dans le scan
 		float anglePalet = ((float) indexPalet / tab.length) * 360.0f;
 		System.out.println("Angle estime : " + anglePalet + " degres");
 
-		if (anglePalet<180) robot.tournerG((int) anglePalet);
-		else robot.tournerD(360-(int)anglePalet);
+		// Rotation vers le palet et mise à jour de la boussole
+		if (anglePalet < 180) {
+			int angleG = (int) anglePalet;
+			robot.tournerG(angleG);
+			ajouterboussole(angleG); // Gauche = +
+		} else {
+			int angleD = 360 - (int) anglePalet;
+			robot.tournerD(angleD);
+			ajouterboussole(-angleD); // Droite = -
+		}
 
+		System.out.println("Boussole actuelle : " + boussole + " degres");
 		return true;
 	}
 
-	// ----------------------------- estUnPalet -----------------------------
-	public static int estUnPalet(float[] tabOriginal) {
-		// Copie du tableau pour effacer les valeurs traitées au fur et à mesure sans modifier l'original
+	// ----------------------------- Gestion Boussole -----------------------------
+	// Met à jour l'boussole et la garde entre -180 et +180 degrés
+	public static void ajouterboussole(int deltaAngle) {
+		boussole = (boussole + deltaAngle) % 360;
+		if (boussole > 180) {
+			boussole -= 360;
+		} else if (boussole <= -180) {
+			boussole += 360;
+		}
+	}
+
+	// ----------------------------- detecterTousLesPalets -----------------------------
+	public static ArrayList<Integer> detecterTousLesPalets(float[] tabOriginal) {
+		ArrayList<Integer> paletsValides = new ArrayList<Integer>();
+
 		float[] tab = new float[tabOriginal.length];
 		System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
 
-		// Efface (mise à -1.0f) tout ce qui est hors zone : murs/coins (< 32 cm) et fond (> 95 cm)
 		for (int i = 0; i < tab.length; i++) {
 			if (tab[i] <= 0.32f || tab[i] >= 0.95f) {
 				tab[i] = -1.0f;
 			}
 		}
 
-		float tolerance = 0.10f; // Tolérance de 10 cm pour regrouper les points d'un même objet
+		float tolerance = 0.10f;
 
 		while (true) {
 			float distMin = Float.POSITIVE_INFINITY;
 			int indexMin = -1;
 
-			// Recherche du point le plus proche (le sommet du palet)
 			for (int i = 0; i < tab.length; i++) {
 				if (tab[i] > 0.32f && tab[i] < 0.95f && tab[i] < distMin) {
 					distMin = tab[i];
@@ -102,22 +124,19 @@ public class Robotdefou {
 				}
 			}
 
-			// Plus aucune valeur valide restante dans la zone
 			if (indexMin == -1) {
-				return -1;
+				break;
 			}
 
 			int indexDebut = indexMin;
 			int indexFin = indexMin;
 
-			// Extension à gauche pour trouver le premier bord de l'objet
 			while (indexDebut > 0
 					&& tab[indexDebut - 1] > 0
 					&& Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
 				indexDebut--;
 			}
 
-			// Extension à droite pour trouver le second bord de l'objet
 			while (indexFin < tab.length - 1
 					&& tab[indexFin + 1] > 0
 					&& Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
@@ -128,87 +147,6 @@ public class Robotdefou {
 			boolean largeurCorrecte = largeurSignal >= 4 && largeurSignal <= 10;
 			boolean creuxVisible = false;
 
-			// Vérification de la forme en creux (profil \ /) par comparaison avec le tableau original
-			if (indexDebut > 0 && indexFin < tabOriginal.length - 1) {
-				float avant = tabOriginal[indexDebut - 1];
-				float apres = tabOriginal[indexFin + 1];
-				float marge = 0.05f; // 5 cm de saut de distance requis sur chaque bord
-
-				creuxVisible = avant >= tabOriginal[indexDebut] + marge
-						&& apres >= tabOriginal[indexFin] + marge;
-			}
-
-			System.out.println("Candidat : " + distMin * 100 + " cm"
-					+ " | largeur=" + largeurSignal
-					+ " | creux=" + creuxVisible);
-
-			// Palet validé : renvoie l'index du milieu pour s'orienter dessus
-			if (largeurCorrecte && creuxVisible) {
-				return (indexDebut + indexFin) / 2;
-			}
-
-			// Obstacle rejeté : effacement du groupe dans la copie pour chercher le candidat suivant
-			for (int i = indexDebut; i <= indexFin; i++) {
-				tab[i] = -1.0f;
-			}
-		}
-	}
-
-	// ----------------------------- detecterTousLesPalets -----------------------------
-	public static ArrayList<Integer> detecterTousLesPalets(float[] tabOriginal) {
-		ArrayList<Integer> paletsValides = new ArrayList<>(); // stocke l'index du milieu de chaque palet validé
-
-		// tab : copie de tabOriginal pour effacer les objets déjà traités 
-		float[] tab = new float[tabOriginal.length];
-		System.arraycopy(tabOriginal, 0, tab, 0, tabOriginal.length);
-
-		// Efface ce qui est hors zone : <= 32 cm (pince) et >= 95 cm (murs/fond)
-		for (int i = 0; i < tab.length; i++) {
-			if (tab[i] <= 0.32f || tab[i] >= 0.95f) {
-				tab[i] = -1.0f;
-			}
-		}
-
-		float tolerance = 0.10f; // écart max (10 cm) pour regrouper les points d'un même objet
-
-		while (true) {
-			float distMin = Float.POSITIVE_INFINITY;
-			int indexMin = -1;
-
-			// Cherche le point le plus proche parmi ceux restants dans tab
-			for (int i = 0; i < tab.length; i++) {
-				if (tab[i] > 0.32f && tab[i] < 0.95f && tab[i] < distMin) {
-					distMin = tab[i];
-					indexMin = i;
-				}
-			}
-
-			if (indexMin == -1) {
-				break; // plus aucun objet à analyser
-			}
-
-			int indexDebut = indexMin;
-			int indexFin = indexMin;
-
-			// Étend à gauche pour trouver le début de l'objet
-			while (indexDebut > 0
-					&& tab[indexDebut - 1] > 0
-					&& Math.abs(tab[indexDebut - 1] - distMin) <= tolerance) {
-				indexDebut--;
-			}
-
-			// Étend à droite pour trouver la fin de l'objet
-			while (indexFin < tab.length - 1
-					&& tab[indexFin + 1] > 0
-					&& Math.abs(tab[indexFin + 1] - distMin) <= tolerance) {
-				indexFin++;
-			}
-
-			int largeurSignal = indexFin - indexDebut + 1;
-			boolean largeurCorrecte = largeurSignal >= 4 && largeurSignal <= 10; // largeur attendue d'un palet, a changer 
-			boolean creuxVisible = false;
-
-			// Vérifie dans tabOriginal qu'il y a un creux de 5 cm avant et après l'objet (évite les murs)
 			if (indexDebut > 0 && indexFin < tabOriginal.length - 1) {
 				float avant = tabOriginal[indexDebut - 1];
 				float apres = tabOriginal[indexFin + 1];
@@ -218,7 +156,6 @@ public class Robotdefou {
 						&& apres >= tabOriginal[indexFin] + marge;
 			}
 
-			// Si valide, ajoute l'index du centre du palet à la liste
 			if (largeurCorrecte && creuxVisible) {
 				int indexCentre = (indexDebut + indexFin) / 2;
 				paletsValides.add(indexCentre);
@@ -226,7 +163,6 @@ public class Robotdefou {
 						+ " | dist=" + (tabOriginal[indexCentre] * 100) + " cm");
 			}
 
-			// Efface cet objet dans tab (-1.0f) pour passer au suivant au prochain tour
 			for (int i = indexDebut; i <= indexFin; i++) {
 				tab[i] = -1.0f;
 			}
@@ -238,26 +174,12 @@ public class Robotdefou {
 	// ----------------------------- avancerEtPrendrePalet -----------------------------
 	public static void avancerEtPrendrePalet() {
 		try {
+			robot.ouvrirPince();
 			robot.avancerSansFin(200);
 
-			while (capteur.distance() > 0.40f && !Button.ESCAPE.isDown()) {
-				Delay.msDelay(20);
-			}
-
-			// Arrête les roues avant d'ouvrir la pince.
-			robot.stop();
 			if (Button.ESCAPE.isDown()) {
 				return;
 			}
-
-			System.out.println("Objet proche : ouverture de la pince.");
-			robot.ouvrirPince();
-
-			if (Button.ESCAPE.isDown()) {
-				return;
-			}
-
-			robot.avancerSansFin(150);
 
 			while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
 				Delay.msDelay(20);
@@ -277,52 +199,54 @@ public class Robotdefou {
 		}
 	}
 
-
 	// ----------------------------- centrerEtAvancer -----------------------------
-	//se place au centre du palet en balayant, puis avance jusqu'a lui
-	public static void centrerEtAvancer (float distPalet){
-		int balaie = 6; // on balaie de 5° de chaque coté
+	public static void centrerEtAvancer(float distPalet) {
+		int balaie = 6; // balaie de 6° de chaque côté
 		robot.tournerG(balaie);
+		ajouterboussole(balaie); // Mise à jour boussole
+
 		ArrayList<Float> mesures = new ArrayList<Float>();
-		robot.asyncTournerD(2*balaie);
-		while (robot.isMoving() && !Button.ESCAPE.isDown()){
-			
+		robot.asyncTournerD(2 * balaie);
+		while (robot.isMoving() && !Button.ESCAPE.isDown()) {
 			mesures.add(capteur.distance());
-			System.out.println("valeur : "+capteur.distance());
 			Delay.msDelay(10);
 		}
+		ajouterboussole(-(2 * balaie)); // Mise à jour boussole après le balayage à droite
 
-		int n=mesures.size();
-		// repere le palet en ignorant les outliers
-		int premier=-1, dernier=-1;
-		for (int i=0; i<n; i++)
-			if (Math.abs(mesures.get(i) - distPalet) <= 0.05f){
-				if(premier == -1) premier =i;
+		int n = mesures.size();
+		int premier = -1, dernier = -1;
+		for (int i = 0; i < n; i++) {
+			if (Math.abs(mesures.get(i) - distPalet) <= 0.05f) {
+				if (premier == -1) premier = i;
 				dernier = i;
 			}
-		if (premier ==-1 || n ==0){
+		}
+		if (premier == -1 || n == 0) {
 			robot.tournerG(balaie);
+			ajouterboussole(balaie); // Mise à jour boussole
 			return;
 		}
-		//calcul le milieu du palet
+		
+		// Calcul du milieu du palet
 		float milieu = (premier + dernier) / 2f;
-		float angleMilieu = milieu * (2f * balaie) / n; 
-		int retour = Math.round(2 * balaie - angleMilieu);
+		float angleMilieu = milieu * (2f * balaie) / n;
+		int retour = Math.round((2 * balaie) - angleMilieu);
+		
 		robot.tournerG(retour);
+		ajouterboussole(retour); // Mise à jour boussole
 
-		//avancerEtPrendrePalet();
+		avancerEtPrendrePalet();
 	}
 
-	// Compare les distances dans tabOriginal et renvoie l'index du palet le plus proche
+	// ----------------------------- trouverPaletPlusProche -----------------------------
 	public static int trouverPaletPlusProche(float[] tabOriginal, ArrayList<Integer> candidats) {
 		if (candidats.isEmpty()) {
-			return -1; // aucun palet trouvé
+			return -1;
 		}
 
-		int indexPlusProche = candidats.get(0); // prend le 1er palet comme référence
+		int indexPlusProche = candidats.get(0);
 		float distPlusProche = tabOriginal[indexPlusProche];
 
-		// Compare avec les autres palets pour garder la plus petite distance
 		for (int i = 1; i < candidats.size(); i++) {
 			int indexActuel = candidats.get(i);
 			float distActuelle = tabOriginal[indexActuel];
@@ -334,107 +258,37 @@ public class Robotdefou {
 		}
 
 		System.out.println("Total palets : " + candidats.size()
-		+ " | Cible la plus proche : " + (distPlusProche * 100) + " cm");
+				+ " | Cible la plus proche : " + (distPlusProche * 100) + " cm");
 		return indexPlusProche;
 	}
 
-	// Nvl version : utilise detecterTousLesPalets et renvoie le plus proche 
-	//ArrayList<Integer> candidats = detecterTousLesPalets(tabOriginal);
-	//	return trouverPaletPlusProche(tabOriginal, candidats);
-	//}
-
-	/**
-	 * Oriente le robot vers un indice du scan.
-	 * L'angle est estimé à partir du nombre de mesures.
-	 */
-	public static void orienterVersPalet(int indexPalet, int nombreMesures) {
-	    float angle = ((float) indexPalet / nombreMesures) * 360.0f;
-
-	    System.out.println("Orientation estimee : " + angle + " degres");
-
-	    if (angle <= 180) {
-	        robot.tournerG(Math.round(angle));
-	    } else {
-	        robot.tournerD(Math.round(360 - angle));
-	    }
+	public static void qualif() {
+		// Exemple d'utilisation de la boussole pour se remettre face au camp adverse (0°) :
+		// if (boussole > 0) { robot.tournerD(boussole); }
+		// else if (boussole < 0) { robot.tournerG(-boussole); }
+		// boussole = 0;
 	}
-
-	/**
-	 * Sélectionne le palet le plus proche, s'oriente vers lui,
-	 * puis lance le centrage et la prise.
-	 */
-	public static void recupererPaletPlusProche(
-	        float[] distances, ArrayList<Integer> candidats) {
-
-	    int indexPalet = trouverPaletPlusProche(distances, candidats);
-
-	    if (indexPalet == -1 || Button.ESCAPE.isDown()) {
-	        System.out.println("Recuperation annulee.");
-	        return;
-	    }
-
-	    float distancePalet = distances[indexPalet];
-
-	    orienterVersPalet(indexPalet, distances.length);
-
-	    if (Button.ESCAPE.isDown()) {
-	        robot.stop();
-	        return;
-	    }
-
-	    centrerEtAvancer(distancePalet);
-	}
-
-
 
 	public static void main(String[] args) {
-	    System.out.println("Initialisation...");
+		System.out.println("Lancement de RobotDeFou...");
 
-	    robot = new Action();
-	    capteur = new Capteur();
+		robot = new Action();
+		capteur = new Capteur();
 
-	    try {
-	        System.out.println("ENTER pour demarrer.");
-	        System.out.println("ESCAPE pour interrompre.");
-	        Button.ENTER.waitForPressAndRelease();
+		try {
+			System.out.println("=== Debut de la recherche ===");
 
-	        ArrayList<Float> mesures = new ArrayList<>();
-	        int resultat = scanner(robot, capteur, mesures);
+			if (analyser()) {
+				System.out.println("Palet possible : rotation terminee.");
+				// avancerEtPrendrePalet();
+			} else {
+				System.out.println("Aucun palet cible ou recherche interrompue.");
+			}
+		} finally {
+			robot.stop();
+			capteur.fermer();
+		}
 
-	        if (resultat != OK || mesures.isEmpty()
-	                || Button.ESCAPE.isDown()) {
-	            System.out.println("Scan interrompu ou vide.");
-	            return;
-	        }
-
-	        // Conversion des mesures en tableau.
-	        float[] distances = new float[mesures.size()];
-
-	        for (int i = 0; i < mesures.size(); i++) {
-	            distances[i] = mesures.get(i);
-	        }
-
-	        // Détection de tous les palets possibles.
-	        ArrayList<Integer> candidats =
-	                detecterTousLesPalets(distances);
-
-	        System.out.println("Palets possibles : " + candidats.size());
-
-	        if (candidats.isEmpty()) {
-	            System.out.println("Aucun palet trouve.");
-	            return;
-	        }
-
-	        // Orientation, centrage puis tentative de prise.
-	        recupererPaletPlusProche(distances, candidats);
-
-	        System.out.println("Sequence terminee.");
-
-	    } finally {
-	        robot.stop();
-	        capteur.fermer();
-	    }
+		System.out.println("Fin du programme.");
 	}
-
-
 }
