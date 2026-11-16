@@ -296,6 +296,10 @@ public class RobotDeFou {
 	}
 
 	public static void main(String[] args) {
+
+		//System.out.println("Appuie sur DROITE pour continuer...");
+		//Button.RIGHT.waitForPressAndRelease();
+		
 		System.out.println("Lancement de RobotDeFou...");
 
 		robot = new Action();
