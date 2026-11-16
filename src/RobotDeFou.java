@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import lejos.hardware.Button;
 import lejos.utility.Delay;
 
-public class RobotDeFou {
+public class Robotdefou {
 
 	private static Action robot;
 	private static Capteur capteur;
@@ -286,7 +286,9 @@ public class RobotDeFou {
 		ArrayList<Float> mesures = new ArrayList<Float>();
 		robot.asyncTournerD(2*balaie);
 		while (robot.isMoving() && !Button.ESCAPE.isDown()){
+			
 			mesures.add(capteur.distance());
+			System.out.println("valeur : "+capteur.distance());
 			Delay.msDelay(10);
 		}
 
@@ -308,7 +310,7 @@ public class RobotDeFou {
 		int retour = Math.round(2 * balaie - angleMilieu);
 		robot.tournerG(retour);
 
-		avancerEtPrendrePalet();
+		//avancerEtPrendrePalet();
 	}
 
 	// Compare les distances dans tabOriginal et renvoie l'index du palet le plus proche
@@ -341,33 +343,97 @@ public class RobotDeFou {
 	//	return trouverPaletPlusProche(tabOriginal, candidats);
 	//}
 
+	/**
+	 * Oriente le robot vers un indice du scan.
+	 * L'angle est estimé à partir du nombre de mesures.
+	 */
+	public static void orienterVersPalet(int indexPalet, int nombreMesures) {
+	    float angle = ((float) indexPalet / nombreMesures) * 360.0f;
 
+	    System.out.println("Orientation estimee : " + angle + " degres");
+
+	    if (angle <= 180) {
+	        robot.tournerG(Math.round(angle));
+	    } else {
+	        robot.tournerD(Math.round(360 - angle));
+	    }
+	}
+
+	/**
+	 * Sélectionne le palet le plus proche, s'oriente vers lui,
+	 * puis lance le centrage et la prise.
+	 */
+	public static void recupererPaletPlusProche(
+	        float[] distances, ArrayList<Integer> candidats) {
+
+	    int indexPalet = trouverPaletPlusProche(distances, candidats);
+
+	    if (indexPalet == -1 || Button.ESCAPE.isDown()) {
+	        System.out.println("Recuperation annulee.");
+	        return;
+	    }
+
+	    float distancePalet = distances[indexPalet];
+
+	    orienterVersPalet(indexPalet, distances.length);
+
+	    if (Button.ESCAPE.isDown()) {
+	        robot.stop();
+	        return;
+	    }
+
+	    centrerEtAvancer(distancePalet);
+	}
 
 
 
 	public static void main(String[] args) {
-		System.out.println("Lancement de RobotDeFou...");
+	    System.out.println("Initialisation...");
 
-		robot = new Action();
-		capteur = new Capteur();
+	    robot = new Action();
+	    capteur = new Capteur();
 
-		try {
-			System.out.println("=== Debut de la recherche ===");
+	    try {
+	        System.out.println("ENTER pour demarrer.");
+	        System.out.println("ESCAPE pour interrompre.");
+	        Button.ENTER.waitForPressAndRelease();
 
-			if (analyser()) {
-				System.out.println("Palet possible : rotation terminee.");
+	        ArrayList<Float> mesures = new ArrayList<>();
+	        int resultat = scanner(robot, capteur, mesures);
 
-				// Active cette ligne apres avoir verifie la visee.
-				// avancerEtPrendrePalet();
-			} else {
-				System.out.println("Aucun palet cible ou recherche interrompue.");
-			}
-		} finally {
-			robot.stop();
-			capteur.fermer();
-		}
+	        if (resultat != OK || mesures.isEmpty()
+	                || Button.ESCAPE.isDown()) {
+	            System.out.println("Scan interrompu ou vide.");
+	            return;
+	        }
 
-		System.out.println("Fin du programme.");
+	        // Conversion des mesures en tableau.
+	        float[] distances = new float[mesures.size()];
+
+	        for (int i = 0; i < mesures.size(); i++) {
+	            distances[i] = mesures.get(i);
+	        }
+
+	        // Détection de tous les palets possibles.
+	        ArrayList<Integer> candidats =
+	                detecterTousLesPalets(distances);
+
+	        System.out.println("Palets possibles : " + candidats.size());
+
+	        if (candidats.isEmpty()) {
+	            System.out.println("Aucun palet trouve.");
+	            return;
+	        }
+
+	        // Orientation, centrage puis tentative de prise.
+	        recupererPaletPlusProche(distances, candidats);
+
+	        System.out.println("Sequence terminee.");
+
+	    } finally {
+	        robot.stop();
+	        capteur.fermer();
+	    }
 	}
 
 
