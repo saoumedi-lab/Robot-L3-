@@ -272,6 +272,28 @@ public class RobotDeFou {
 		return indexPlusProche;
 	}
 
+	
+	public static void debut(boolean campAdverse) {
+
+	    int angle = campAdverse ? 45 : -45;
+
+	    // 1. Contournement initial
+	    if (angle > 0) {
+	        robot.tournerD(angle);
+	    } else {
+	        robot.tournerG(-angle);
+	    }
+
+	    // 2. Avancer de 15 cm
+	    robot.avancer(15);
+
+	    // 3. Revenir dans l'axe initial
+	    if (angle > 0) {
+	        robot.tournerG(angle);
+	    } else {
+	        robot.tournerD(-angle);
+	    }
+	}
 
 	public static void main(String[] args) {
 		System.out.println("Lancement de RobotDeFou...");
