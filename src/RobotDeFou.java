@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import lejos.hardware.Button;
 import lejos.utility.Delay;
 
-public class Robotdefou {
+public class RobotDeFou {
 
 	private static Action robot;
 	private static Capteur capteur;
