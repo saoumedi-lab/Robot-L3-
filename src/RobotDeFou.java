@@ -284,53 +284,43 @@ public class RobotDeFou {
 
 	
 
+	public static void debut(boolean campGauche) {
 
-public static void debut(boolean campGauche) {
+	    // 1. Premier palet : juste en face du robot
+	    avancerEtPrendrePalet();
 
-    // 1. Contournement initial
-    int angle = campGauche ? 45 : -45;
+	    // 2. Contournement : 45° -> 30 cm -> retour à l'axe
+	    if (campGauche) {
+	        robot.tournerD(45);
+	    } else {
+	        robot.tournerG(45);
+	    }
 
-    if (angle > 0) {
-        robot.tournerD(45);
-    } else {
-        robot.tournerG(45);
-    }
+	    robot.avancer(30);
 
-    robot.avancer(15);
+	    if (campGauche) {
+	        robot.tournerG(45);
+	    } else {
+	        robot.tournerD(45);
+	    }
 
-    if (angle > 0) {
-        robot.tournerG(45);
-    } else {
-        robot.tournerD(45);
-    }
+	    // 3. Tout droit jusqu'au camp adverse, puis dépose du palet
+	    robot.avancer(180);
+	    robot.ouvrirPince();
+	    Delay.msDelay(300);
 
-    // 2. Chercher et récupérer le premier palet
-    analyser();
-    avancerEtPrendrePalet();
+	    // 4. Reculer de quelques cm pour dégager le palet déposé
+	    robot.reculer(10);
 
-    // 3. Aller vers le camp adverse
-    robot.tournerD(180);
-    robot.avancer(250);
+	    // 5. Chercher et récupérer le 2e palet, côté camp adverse
+	    if (analyser()) {
+	        avancerEtPrendrePalet();
+	    } else {
+	        System.out.println("Deuxieme palet introuvable.");
+	    }
 
-    // Déposer le premier palet
-    robot.lacher(capteur);
-
-    // 4. Se retourner vers le terrain
-    robot.tournerD(180);
-
-    // 5. Chercher et récupérer le deuxième palet
-    analyser();
-    avancerEtPrendrePalet();
-
-    // 6. Retourner au camp adverse
-    robot.tournerD(180);
-    robot.avancer(250);
-
-    // Déposer le deuxième palet
-    robot.lacher(capteur);
-
-    robot.stop();
-}
+	    robot.stop();
+	}
 
 
 	public static void main(String[] args) {
