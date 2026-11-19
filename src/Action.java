@@ -18,6 +18,10 @@ public class Action {
 	private MovePilot pilot ;
 	private int boussole;
 	private final EV3LargeRegulatedMotor moteurPince;
+	
+	private boolean pinceOuverte = false;               // la pince doit être fermée au lancement du programme
+	private final int VITESSE_OUVERTURE = 600;          // avant : 300, donc 2 fois plus vite
+	private final int ANGLE_OUVERTURE = 600;            // 2000 ms à 300°/s = 600°
 
 	// Constructeur qui initialise les roues sur les ports C (gauche) et B (droit).
 	
@@ -144,20 +148,28 @@ public class Action {
 	// ================PINCE=====================      
 	// ==========================================
 	
-	//méthode qui ouvre la pince du robot pour libérer un palet.
-	public void ouvrirPince() {
-		moteurPince.setSpeed(SPEED);
-		moteurPince.forward();
-		Delay.msDelay(2000);
-		moteurPince.stop();
+	public void ouvrirPinceAsync() {
+	    if (pinceOuverte) {
+	        return;
+	    }
+	    moteurPince.setSpeed(VITESSE_OUVERTURE);
+	    moteurPince.rotate(ANGLE_OUVERTURE, true);
+	    pinceOuverte = true;
 	}
-	
-	// Méthode qui ferme la pince du robot
+
+	// Ouvre la pince et attend la fin (pour la dépose).
+	public void ouvrirPince() {
+	    ouvrirPinceAsync();
+	    moteurPince.waitComplete();
+	}
+
 	public void serrerPince() {
-		moteurPince.setSpeed(SPEED);
-		moteurPince.backward();
-		Delay.msDelay(5000);
-		moteurPince.stop();
+	    moteurPince.waitComplete();
+	    moteurPince.setSpeed(SPEED);
+	    moteurPince.backward();
+	    Delay.msDelay(5000);
+	    moteurPince.stop();
+	    pinceOuverte = false;
 	}
 
 	// Comportement intelligent de dépôt : avance en continu jusqu'à la ligne blanche,

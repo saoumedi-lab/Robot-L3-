@@ -164,33 +164,26 @@ public class RobotDeFou {
 
 	// ----------------------------- avancerEtPrendrePalet -----------------------------
 	public static void avancerEtPrendrePalet() {
-		try {
-			robot.ouvrirPince();
-			robot.avancerSansFin(200);
+	    try {
+	        robot.ouvrirPinceAsync();      // la pince s'ouvre pendant qu'on avance
+	        robot.avancerSansFin(200);
 
-			if (Button.ESCAPE.isDown()) {
-				return;
-			}
+	        while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
+	            Delay.msDelay(20);
+	        }
 
-			while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
-				Delay.msDelay(20);
-			}
+	        robot.stop();
 
-			robot.stop();
+	        if (!Button.ESCAPE.isDown()) {
+	            System.out.println("Contact detecte : fermeture de la pince.");
+	            robot.serrerPince();
+	            System.out.println("Pince fermee.");
+	        }
 
-			if (!Button.ESCAPE.isDown()) {
-				System.out.println("Contact detecte : fermeture de la pince.");
-				robot.serrerPince();
-				System.out.println("Pince fermee.");
-			}
-
-			Delay.msDelay(500);
-		} finally {
-			robot.stop();
-		}
-		if (Button.ESCAPE.isDown()) {
-    return;
-}
+	        Delay.msDelay(500);
+	    } finally {
+	        robot.stop();
+	    }
 	}
 
 	// ----------------------------- centrerEtAvancer -----------------------------
@@ -280,8 +273,22 @@ public class RobotDeFou {
 				+ " | Cible la plus proche : " + (distPlusProche * 100) + " cm");
 		return indexPlusProche;
 	}
+	// true = pince déjà ouverte (au départ, on suppose qu'elle est fermée)
+	private static boolean pinceOuverte = false;
 
-	
+	private static void ouvrirPinceSiBesoin() {
+	    if (!pinceOuverte) {
+	        robot.ouvrirPinceAsync();   // non bloquant, voir point 2
+	        pinceOuverte = true;
+	    }
+	}
+
+	private static void fermerPince() {
+	    robot.serrerPince();
+	    pinceOuverte = false;
+	}
+
+	// ----------------------------- debut -----------------------------
 
 	public static void debut(boolean campGauche) {
 
@@ -305,13 +312,10 @@ public class RobotDeFou {
 
 	    // 3. Tout droit jusqu'au camp adverse, puis dépose du palet
 	    robot.avancer(180);
-	    robot.ouvrirPince();
-	    Delay.msDelay(300);
-
-	    // 4. Reculer de quelques cm pour dégager le palet déposé
+	    robot.ouvrirPince();           // attend la fin de l'ouverture
 	    robot.reculer(10);
 
-	    // 5. Chercher et récupérer le 2e palet, côté camp adverse
+	    // 4. 2e palet : la pince est déjà ouverte, elle ne bouge pas
 	    if (analyser()) {
 	        avancerEtPrendrePalet();
 	    } else {
