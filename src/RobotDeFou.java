@@ -86,7 +86,6 @@ public class RobotDeFou {
 			robot.tournerD(angleD);
 		}
 
-		System.out.println("Boussole actuelle : " + robot.getBoussole() + " degres");
 		return true;
 	}
 
