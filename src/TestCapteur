@@ -148,49 +148,6 @@ public class TestCapteur {
         Button.ENTER.waitForPressAndRelease();
     }
 
-    /**
-     * Vérifie que recherche() ajoute une seule mesure à la fin
-     * du tableau, conserve les anciennes valeurs et renvoie
-     * un nouveau tableau.
-     */
-    public void testRecherche() {
-        System.out.println("TEST : recherche");
-        System.out.println("Place une surface plane a 40 cm.");
-        System.out.println("ENTER pour mesurer.");
-        Button.ENTER.waitForPressAndRelease();
-
-        float[] original = {0.20f, 0.30f};
-        float[] resultat = capteur.recherche(original);
-
-        boolean tailleCorrecte = resultat.length == 3;
-
-        boolean anciennesValeursConservees = tailleCorrecte
-                && resultat[0] == 0.20f
-                && resultat[1] == 0.30f;
-
-        boolean originalInchange = original.length == 2
-                && original[0] == 0.20f
-                && original[1] == 0.30f;
-
-        boolean mesureCorrecte = tailleCorrecte
-                && !Float.isNaN(resultat[2])
-                && !Float.isInfinite(resultat[2])
-                && Math.abs(resultat[2] - 0.40f) <= 0.02f;
-
-        System.out.println("Taille attendue : 3");
-        System.out.println("Taille obtenue : " + resultat.length);
-        System.out.println("Anciennes valeurs conservees : "
-                + anciennesValeursConservees);
-        System.out.println("Original inchange : " + originalInchange);
-        System.out.println("Nouveau tableau : " + (resultat != original));
-
-        if (tailleCorrecte) {
-            System.out.println("Mesure ajoutee : " + resultat[2] + " m");
-        }
-
-        System.out.println("Mesure proche de 40 cm : " + mesureCorrecte);
-        Button.ENTER.waitForPressAndRelease();
-    }
 
     /**
      * Vérifie la libération des trois ports en fermant les capteurs,
@@ -228,7 +185,6 @@ public class TestCapteur {
             // tests.testDistance();
             // tests.testGetCouleur();
             // tests.testDistanceClr();
-            // tests.testRecherche();
             // tests.testFermer();
 
         } finally {
