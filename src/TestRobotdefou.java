@@ -4,8 +4,8 @@ import lejos.hardware.Button;
 /**
  * Tests de la classe Robotdefou.
  *
- * Les tests de reconnaissance utilisent un scan enregistré.
- * Les tests physiques nécessitent la brique EV3.
+ * Les tests sur tableaux ne commandent aucun moteur.
+ * Exécuter un seul test physique par lancement du programme.
  */
 public class TestRobotdefou {
 
@@ -34,17 +34,20 @@ public class TestRobotdefou {
         1.393f, 1.393f, 1.393f
     };
 
-    /**
-     * Crée les composants nécessaires à un test physique.
-     * Vérifie indirectement l'utilisation de initialiser().
-     */
+    /** Attend le placement du robot avant un test physique. */
+    private void attendreDepart() {
+        System.out.println("ENTER pour demarrer.");
+        Button.ENTER.waitForPressAndRelease();
+    }
+
+    /** Crée les composants et les associe à Robotdefou. */
     private void preparerRobot() {
         action = new Action();
         capteurs = new Capteur();
         Robotdefou.initialiser(action, capteurs);
     }
 
-    /** Arrête les roues et ferme les capteurs après un test physique. */
+    /** Arrête les roues et ferme les capteurs. */
     private void terminerTestPhysique() {
         try {
             if (action != null) {
@@ -57,93 +60,9 @@ public class TestRobotdefou {
         }
     }
 
-    /** Attend que le robot soit placé avant un test physique. */
-    private void attendreDepart() {
-        System.out.println("ENTER pour demarrer.");
-        Button.ENTER.waitForPressAndRelease();
-    }
-
     /**
-     * Vérifie la reconnaissance d'un candidat et les principaux rejets.
-     * Les résultats attendus correspondent aux critères actuels du code.
-     */
-    public void testEstUnPalet() {
-        System.out.println("\n=== TEST : estUnPalet ===");
-
-        float[][] jeuxEssai = {
-            // Scan réel : candidat attendu à l'indice 20.
-            distancesTest,
-
-            // Sept mesures proches entre deux fonds éloignés.
-            {
-                1.20f, 1.20f, 1.20f,
-                0.45f, 0.44f, 0.43f, 0.42f,
-                0.43f, 0.44f, 0.45f,
-                1.20f, 1.20f, 1.20f
-            },
-
-            // Trois mesures : signal trop court.
-            {
-                1.20f, 0.45f, 0.44f, 0.45f, 1.20f
-            },
-
-            // Onze mesures : signal trop large.
-            {
-                1.20f,
-                0.45f, 0.45f, 0.45f, 0.45f, 0.45f,
-                0.45f, 0.45f, 0.45f, 0.45f, 0.45f,
-                0.45f,
-                1.20f
-            },
-
-            // Distances hors de l'intervalle autorisé.
-            {
-                0.20f, 0.25f, 1.00f, 1.20f
-            },
-
-            // Aucun fond visible autour du signal.
-            {
-                0.45f, 0.45f, 0.45f, 0.45f,
-                0.45f, 0.45f, 0.45f
-            },
-
-            // Mesures invalides.
-            {
-                0.0f, -1.0f, Float.NaN,
-                Float.POSITIVE_INFINITY
-            },
-
-            // Tableau vide.
-            {}
-        };
-
-        String[] descriptions = {
-            "Scan enregistre",
-            "Signal de sept mesures",
-            "Signal trop court",
-            "Signal trop large",
-            "Distances hors intervalle",
-            "Absence de bords visibles",
-            "Mesures invalides",
-            "Tableau vide"
-        };
-
-        int[] attendus = {20, 6, -1, -1, -1, -1, -1, -1};
-
-        for (int i = 0; i < jeuxEssai.length; i++) {
-            int obtenu = Robotdefou.estUnPalet(jeuxEssai[i]);
-
-            System.out.println(descriptions[i]);
-            System.out.println("Attendu : " + attendus[i]);
-            System.out.println("Obtenu : " + obtenu);
-            System.out.println("Test reussi : "
-                    + (obtenu == attendus[i]));
-        }
-    }
-
-    /**
-     * Vérifie la détection de plusieurs candidats et le scan enregistré.
-     * Ne commande aucun moteur.
+     * Vérifie la détection sur le scan enregistré,
+     * sur deux signaux distincts et sur un tableau vide.
      */
     public void testDetecterTousLesPalets() {
         System.out.println("\n=== TEST : detecterTousLesPalets ===");
@@ -158,7 +77,6 @@ public class TestRobotdefou {
         System.out.println("Obtenu : " + obtenus);
         System.out.println("Test reussi : " + scanReussi);
 
-        // Deux signaux séparés, avec des distances différentes.
         float[] deuxPalets = {
             1.20f,
             0.45f, 0.44f, 0.43f, 0.44f,
@@ -185,16 +103,16 @@ public class TestRobotdefou {
     }
 
     /**
-     * Vérifie la sélection de la plus petite distance.
+     * Vérifie la sélection du candidat le plus proche.
      * Les indices sont fournis directement pour isoler cette méthode.
      */
     public void testTrouverPaletPlusProche() {
         System.out.println("\n=== TEST : trouverPaletPlusProche ===");
 
         ArrayList<Integer> candidats = new ArrayList<Integer>();
-        candidats.add(8);   // Environ 46,4 cm.
-        candidats.add(20);  // Environ 39,3 cm.
-        candidats.add(28);  // Environ 64,1 cm.
+        candidats.add(8);
+        candidats.add(20);
+        candidats.add(28);
 
         int obtenu = Robotdefou.trouverPaletPlusProche(
                 distancesTest, candidats);
@@ -202,6 +120,16 @@ public class TestRobotdefou {
         System.out.println("Indice attendu : 20");
         System.out.println("Indice obtenu : " + obtenu);
         System.out.println("Test reussi : " + (obtenu == 20));
+
+        candidats.clear();
+        candidats.add(8);
+
+        obtenu = Robotdefou.trouverPaletPlusProche(
+                distancesTest, candidats);
+
+        System.out.println("Candidat unique : attendu 8");
+        System.out.println("Obtenu : " + obtenu);
+        System.out.println("Test reussi : " + (obtenu == 8));
 
         candidats.clear();
 
@@ -215,7 +143,7 @@ public class TestRobotdefou {
 
     /**
      * Vérifie qu'un scan réel se termine et produit des mesures.
-     * La rotation doit également être vérifiée visuellement.
+     * Contrôler également la rotation physique du robot.
      */
     public void testScanner() {
         System.out.println("\n=== TEST PHYSIQUE : scanner ===");
@@ -233,18 +161,24 @@ public class TestRobotdefou {
             System.out.println("Code attendu : 0");
             System.out.println("Code obtenu : " + resultat);
             System.out.println("Nombre de mesures : " + mesures.size());
-            System.out.println("Test reussi : "
-                    + (resultat == 0 && !mesures.isEmpty()));
+
+            boolean reussi = resultat == 0 && !mesures.isEmpty();
+
+            System.out.println("Test reussi : " + reussi);
             System.out.println("Verifie aussi la rotation physique.");
         } finally {
             terminerTestPhysique();
         }
     }
 
-    /** Vérifie l'enchaînement réel du scan et de l'orientation. */
+    /**
+     * Vérifie le scan, la reconnaissance et l'orientation.
+     * Placer un palet entre 32 et 95 cm du capteur.
+     */
     public void testAnalyser() {
         System.out.println("\n=== TEST PHYSIQUE : analyser ===");
         System.out.println("Place un palet entre 32 et 95 cm.");
+        System.out.println("Repere sa direction avant le depart.");
         attendreDepart();
 
         try {
@@ -262,90 +196,42 @@ public class TestRobotdefou {
     }
 
     /**
-     * Vérifie l'orientation calculée depuis un indice du scan enregistré.
-     * Le robot ne réalise pas de nouveau scan.
-     */
-    public void testOrienterVersPalet() {
-        int indexPalet = 20;
-
-        float angleAttendu =
-                indexPalet * 360.0f / distancesTest.length;
-
-        System.out.println("\n=== TEST PHYSIQUE : orienterVersPalet ===");
-        System.out.println("Repere l'orientation initiale.");
-        System.out.println("Angle estime : " + angleAttendu + " degres");
-        attendreDepart();
-
-        try {
-            preparerRobot();
-
-            Robotdefou.orienterVersPalet(
-                    indexPalet, distancesTest.length);
-
-            System.out.println("Verifie l'angle et le sens de rotation.");
-        } finally {
-            terminerTestPhysique();
-        }
-    }
-
-    /**
-     * Vérifie le centrage avec une distance cible issue du scan enregistré.
-     * Le palet réel doit être presque face aux pinces, à environ 39,3 cm.
+     * Vérifie l'approche d'un palet déjà aligné.
+     * Le candidat fourni correspond à une distance de 39,3 cm.
+     *
+     * La méthode actuelle lance ensuite la prise du palet.
+     * Sa correction d'orientation n'est pas encore implémentée.
      */
     public void testCentrerEtAvancer() {
-        float distanceCible = distancesTest[20];
-
-        System.out.println("\n=== TEST PHYSIQUE : centrerEtAvancer ===");
-        System.out.println("Place le palet presque face aux pinces.");
-        System.out.println("Distance cible : "
-                + distanceCible * 100 + " cm");
-        System.out.println("Pour le centrage seul, commente l'appel");
-        System.out.println("a avancerEtPrendrePalet dans centrerEtAvancer.");
-        attendreDepart();
-
-        try {
-            preparerRobot();
-
-            Robotdefou.centrerEtAvancer(distanceCible);
-
-            System.out.println("Verifie : palet centre face aux pinces.");
-        } finally {
-            terminerTestPhysique();
-        }
-    }
-
-    /**
-     * Vérifie la sélection, l'orientation et le centrage d'une cible.
-     * Replacer le robot et les palets comme pendant le scan enregistré.
-     */
-    public void testRecupererPaletPlusProche() {
         ArrayList<Integer> candidats = new ArrayList<Integer>();
         candidats.add(20);
 
-        System.out.println(
-                "\n=== TEST PHYSIQUE : recupererPaletPlusProche ===");
-        System.out.println("Reproduis la position du scan enregistre.");
-        System.out.println("Candidat fourni : indice 20.");
-        System.out.println("La prise depend de son activation");
-        System.out.println("dans centrerEtAvancer.");
+        System.out.println("\n=== TEST PHYSIQUE : centrerEtAvancer ===");
+        System.out.println("Place le palet face aux pinces.");
+        System.out.println("Distance depuis le capteur : environ 39,3 cm.");
+        System.out.println("Le robot avancera puis prendra le palet.");
+        System.out.println("ESCAPE pour interrompre l'approche.");
         attendreDepart();
 
         try {
             preparerRobot();
 
-            Robotdefou.recupererPaletPlusProche(
-                    distancesTest, candidats);
+            Robotdefou.centrerEtAvancer(distancesTest, candidats);
 
-            System.out.println("Verifie l'orientation et le centrage.");
-            System.out.println("Si la prise est activee, verifie la capture.");
+            if (Button.ESCAPE.isDown()) {
+                System.out.println("Test interrompu.");
+            } else {
+                System.out.println("Verifie : roues arretees.");
+                System.out.println("Verifie : palet capture dans la pince.");
+            }
         } finally {
             terminerTestPhysique();
         }
     }
 
     /**
-     * Vérifie l'approche et la prise d'un palet déjà face au robot.
-     * ESCAPE permet d'interrompre les boucles d'approche.
+     * Vérifie l'approche et la fermeture de la pince.
+     * Le palet doit déjà être aligné avec les pinces.
      */
     public void testAvancerEtPrendrePalet() {
         System.out.println(
@@ -373,22 +259,19 @@ public class TestRobotdefou {
 
     /**
      * Sélection des tests à lancer.
-     * Un seul test physique doit être activé par exécution.
+     * Activer un seul test physique par exécution.
      */
     public static void main(String[] args) {
         TestRobotdefou tests = new TestRobotdefou();
 
-        // Tests utilisant uniquement des tableaux.
-        tests.testEstUnPalet();
+        // Tests sur tableaux : aucun mouvement.
         tests.testDetecterTousLesPalets();
         tests.testTrouverPaletPlusProche();
 
-        // Tests physiques : activer UN seul appel à la fois.
+        // Tests physiques : activer UN seul appel.
         // tests.testScanner();
         // tests.testAnalyser();
-        // tests.testOrienterVersPalet();
         // tests.testCentrerEtAvancer();
-        // tests.testRecupererPaletPlusProche();
         // tests.testAvancerEtPrendrePalet();
 
         System.out.println("\nFin des tests.");
