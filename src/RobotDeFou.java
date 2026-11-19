@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import lejos.hardware.Button;
 import lejos.utility.Delay;
 
-public class RobotDeFou {
+public class Robotdefou {
 
 	private static Action robot;
 	private static Capteur capteur;
@@ -15,8 +15,6 @@ public class RobotDeFou {
 	    capteur = capteurs;
 	}
 	// Boussole : 0 = axe de départ (face au camp adverse). Gauche (+), Droite (-)
-	private static int boussole = 0;
-
 	private static final int OK = 0;
 	private static final int ARRET_BOUTON = 1;
 	private static final int ARRET_CONTACT = 2;
@@ -83,26 +81,13 @@ public class RobotDeFou {
 		if (anglePalet < 180) {
 			int angleG = (int) anglePalet;
 			robot.tournerG(angleG);
-			ajouterboussole(angleG); // Gauche = +
 		} else {
 			int angleD = 360 - (int) anglePalet;
 			robot.tournerD(angleD);
-			ajouterboussole(-angleD); // Droite = -
 		}
 
-		System.out.println("Boussole actuelle : " + boussole + " degres");
+		System.out.println("Boussole actuelle : " + robot.getBoussole() + " degres");
 		return true;
-	}
-
-	// ----------------------------- Gestion Boussole -----------------------------
-	// Met à jour l'boussole et la garde entre -180 et +180 degrés
-	public static void ajouterboussole(int deltaAngle) {
-		boussole = (boussole + deltaAngle) % 360;
-		if (boussole > 180) {
-			boussole -= 360;
-		} else if (boussole <= -180) {
-			boussole += 360;
-		}
 	}
 
 	// ----------------------------- detecterTousLesPalets -----------------------------
@@ -241,7 +226,7 @@ public class RobotDeFou {
         			
         			float distActuelle = capteur.distance();
         			
-        			if(distActuelle <=0) {
+        			if(distActuelle <=0  || Float.isNaN(distActuelle) || Float.isInfinite(distActuelle)) {
         				robot.stop();
         				return;
         				}
