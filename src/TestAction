@@ -209,57 +209,58 @@ public class TestAction {
         Button.waitForAnyPress();
     }
 
-    /**
-     * Vérifie la lecture de l'angle pendant une rotation.
-     *
-     * Avec asyncTournerG(90), la commande envoyée au pilote
-     * est de -80,1 degrés, selon le coefficient actuel de 0,89.
-     */
-    public void testGetAngleRotation() {
-        System.out.println("TEST : getAngleRotation");
-        System.out.println("Repere l'orientation puis appuie.");
-        Button.waitForAnyPress();
-
-        boolean mesurePrise = false;
-        float dernierAngle = 0;
-
-        try {
-            action.asyncTournerG(90);
-
-            while (action.isMoving() && !Button.ESCAPE.isDown()) {
-                dernierAngle = action.getAngleRotation();
-                mesurePrise = true;
-
-                System.out.println("Angle estime : " + dernierAngle);
-                Delay.msDelay(100);
-            }
-        } finally {
-            action.stop();
-        }
-
-        if (mesurePrise) {
-            System.out.println("Dernier angle lu : " + dernierAngle);
-            System.out.println("Attendu : valeurs negatives et evolutives.");
-            System.out.println("La derniere lecture peut preceder la fin.");
-        } else {
-            System.out.println("Aucune mesure prise : test non concluant.");
-        }
-
-        Button.waitForAnyPress();
-    }
-
+    
     /**
      * Vérifie la valeur initiale de la boussole.
      *
      * Dans la version actuelle de Action, actBoussole()
      * n'est jamais appelée : la valeur reste donc à zéro.
      */
+    /**
+     * Vérifie la mise à jour de la boussole après deux rotations.
+     * Convention : gauche positive, droite négative.
+     */
     public void testGetBoussole() {
         System.out.println("TEST : getBoussole");
-        System.out.println("Attendu avec le code actuel : 0");
-        System.out.println("Obtenu : " + action.getBoussole());
+        System.out.println("Le robot tournera a gauche puis a droite.");
+        System.out.println("ENTER pour demarrer.");
+        Button.ENTER.waitForPressAndRelease();
 
-        Button.waitForAnyPress();
+        int orientationInitiale = action.getBoussole();
+
+        try {
+            System.out.println("Boussole initiale : " + orientationInitiale);
+
+            action.tournerG(90);
+
+            int apresGauche = action.getBoussole();
+
+            System.out.println("Apres gauche : " + apresGauche);
+            System.out.println("Variation attendue : +90 degres");
+
+            boolean gaucheCorrecte =
+                    (apresGauche - orientationInitiale - 90) % 360 == 0;
+
+            System.out.println("Test gauche reussi : " + gaucheCorrecte);
+
+            action.tournerD(90);
+
+            int apresDroite = action.getBoussole();
+
+            System.out.println("Apres droite : " + apresDroite);
+            System.out.println("Retour attendu : " + orientationInitiale);
+
+            boolean retourCorrect =
+                    (apresDroite - orientationInitiale) % 360 == 0;
+
+            System.out.println("Test retour reussi : " + retourCorrect);
+            System.out.println("Verifie aussi l'orientation physique.");
+
+        } finally {
+            action.stop();
+        }
+
+        Button.ENTER.waitForPressAndRelease();
     }
 
     /**
@@ -336,8 +337,7 @@ public class TestAction {
             // tests.testAsyncTournerG();
             // tests.testAsyncTournerD();
             // tests.testIsMoving();
-            // tests.testGetAngleRotation();
-            // tests.testGetBoussole();
+            //tests.testGetBoussole();
             // tests.testSerrerPince();
             // tests.testOuvrirPince();
             // tests.testLacher();
