@@ -52,14 +52,21 @@ public class Action {
 	// ================BOUSSOLE==================
 	// ==========================================
 
-	private void actBoussole (int angle){
-		boussole = ((boussole + angle) % 360 + 360) % 360;
-	}
-
 	public int getBoussole() {
 		return boussole; 
 	}
 
+
+	// ----------------------------- Gestion Boussole -----------------------------
+	// Met à jour l'boussole et la garde entre -180 et +180 degrés
+	public void ajouterboussole(int deltaAngle) {
+		boussole = (boussole + deltaAngle) % 360;
+		if (boussole > 180) {
+			boussole -= 360;
+		} else if (boussole <= -180) {
+			boussole += 360;
+		}
+	}
 
 
 	// ==========================================
