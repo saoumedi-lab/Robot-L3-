@@ -20,8 +20,8 @@ public class Action {
 	private final EV3LargeRegulatedMotor moteurPince;
 	
 	private boolean pinceOuverte = false;               // la pince doit être fermée au lancement du programme
-	private final int VITESSE_OUVERTURE = 600;          // avant : 300, donc 2 fois plus vite
-	private final int ANGLE_OUVERTURE = 600;            // 2000 ms à 300°/s = 600°
+	private final int VITESSE_OUVERTURE = 300;   // reviens à ta vitesse d'avant, qui marchait
+	private final int ANGLE_OUVERTURE = 700;     // monte par paliers de 50 jusqu'à la bonne ouverture          // 2000 ms à 300°/s = 600°
 
 	// Constructeur qui initialise les roues sur les ports C (gauche) et B (droit).
 	

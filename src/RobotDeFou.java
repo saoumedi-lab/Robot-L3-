@@ -387,6 +387,7 @@ public class RobotDeFou {
 	    robot.avancer(180);
 	    robot.ouvrirPince();           // attend la fin de l'ouverture
 	    robot.reculer(10);
+	    
 
 	    // 4. 2e palet : la pince est déjà ouverte, elle ne bouge pas
 	    if (analyser()) {
@@ -399,6 +400,46 @@ public class RobotDeFou {
 	}
 
 
+	
+	public static void revenirAxe() {
+	    int cap = robot.getBoussole();
+	    if (cap > 0) {
+	        robot.tournerG(cap);      // tournerD ajoute + à la boussole, tournerG retire
+	    } else if (cap < 0) {
+	        robot.tournerD(-cap);
+	    }
+	}
+	
+	public static void deposerPalet() {
+	    robot.avancerSansFin(200);
+	    while (capteur.distance() > 0.25f && !Button.ESCAPE.isDown()) {  // 0.25 à régler
+	        Delay.msDelay(20);
+	    }
+	    robot.stop();
+	    robot.ouvrirPince();
+	    robot.reculer(15);
+	}
+	
+	
+	public static void recupererLesPalets(int nbMax) {
+	    int echecs = 0;
+	    int deposes = 0;
+
+	    while (deposes < nbMax && echecs < 3 && !Button.ESCAPE.isDown()) {
+	        if (!analyser()) {
+	            echecs++;
+	            robot.avancer(20);
+	            continue;
+	        }
+	        echecs = 0;
+	        avancerEtPrendrePalet();
+	        revenirAxe();
+	        deposerPalet();
+	        deposes++;
+	        robot.tournerG(180);   // face au terrain pour le scan suivant
+	    }
+	}
+	
 	public static void main(String[] args) {
 
 		//System.out.println("Appuie sur DROITE pour continuer...");
