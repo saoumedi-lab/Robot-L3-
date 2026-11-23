@@ -421,8 +421,6 @@ public class RobotDeFou {
 	    robot.stop();
 	    robot.ouvrirPince();
 	    robot.reculer(15);
-	        robot.stop();
-	        // ...
 	    }
 	
 	
