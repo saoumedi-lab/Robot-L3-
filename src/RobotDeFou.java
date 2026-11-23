@@ -273,6 +273,8 @@ public class RobotDeFou {
 	 * Effectue un léger balayage gauche -> droite (-angleMax à +angleMax)
 	 * pour repérer le centre exact du palet et y réaligner le robot.
 	 */
+	
+	// ----------------------------- sonderDroiteGauche -----------------------------
 	private static float sondeDroiteGauche(float distAttendue, int angleMax) {
 		// Se décale légèrement à gauche
 		robot.tournerG(angleMax);
@@ -351,7 +353,7 @@ public class RobotDeFou {
 	}
 
 	
-
+	// ----------------------------- debut -----------------------------
 	public static void debut(boolean campGauche) {
 
 	    // 1. Premier palet : juste en face du robot
@@ -390,6 +392,7 @@ public class RobotDeFou {
 	    robot.stop();
 	}
 
+	// ----------------------------- revenirAxe -----------------------------
 	public static void revenirAxe() {
 	    int cap = robot.getBoussole();
 	    if (cap > 0) {
@@ -399,6 +402,7 @@ public class RobotDeFou {
 	    }
 	}
 	
+	// ----------------------------- deposerPalet -----------------------------
 	public static void deposerPalet() {
 	    robot.avancerSansFin(200);
 	    while (!Button.ESCAPE.isDown()) {
@@ -413,7 +417,7 @@ public class RobotDeFou {
 	    }
 	
 	
-	
+	// ----------------------------- recupererLesPalets -----------------------------
 	public static void recupererLesPalets(int nbMax) {
 	    int echecs = 0;
 	    int deposes = 0;
@@ -432,6 +436,8 @@ public class RobotDeFou {
 	        robot.tournerG(180);   // face au terrain pour le scan suivant
 	    }
 	}
+	
+	// ----------------------------- surveillerObstacle -----------------------------
 	public static void surveillerObstacle() {
 	    final float distanceArret = 0.20f; // 20 cm, à ajuster.
 	    try {
