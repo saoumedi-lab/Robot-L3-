@@ -38,8 +38,7 @@ public class RobotDeFou {
 				// Une seule lecture : stockage en mètres, affichage en cm.
 				float distance = capteur.distance();
 				liste.add(distance);
-				System.out.println("Distance : " + (distance * 100) + " cm");
-
+				
 				Delay.msDelay(10);
 			}
 
