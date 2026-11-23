@@ -20,9 +20,9 @@ public class Action {
 	private final EV3LargeRegulatedMotor moteurPince;
 	
 	private boolean pinceOuverte = false;               // la pince doit être fermée au lancement du programme
-	private final int VITESSE_OUVERTURE = 300;   // reviens à ta vitesse d'avant, qui marchait
-	private final int ANGLE_OUVERTURE = 700;     // monte par paliers de 50 jusqu'à la bonne ouverture          // 2000 ms à 300°/s = 600°
-
+	private final int VITESSE_OUVERTURE = 600;
+	private final int ANGLE_OUVERTURE = 800;
+	private final int POSITION_SERRAGE_PALET = 98;
 	// Constructeur qui initialise les roues sur les ports C (gauche) et B (droit).
 	
 	public Action() {
@@ -37,6 +37,8 @@ public class Action {
 		EV3LargeRegulatedMotor m2 = new EV3LargeRegulatedMotor(mD);//associe le port C au moteur m2
 		
 		moteurPince = new EV3LargeRegulatedMotor(MotorPort.A);
+		// Pince fermee et vide au lancement du programme.
+		moteurPince.resetTachoCount();
 		
 		// Modélisation des roues
 		Wheel motorG = WheeledChassis.modelWheel(m1, 56).offset(-60);//diametre roue gauche + ecartement de 6 cm a gauche du centre
@@ -148,28 +150,55 @@ public class Action {
 	// ================PINCE=====================      
 	// ==========================================
 	
+	/**
+	 * Ouvre la pince sans attendre la fin du mouvement.
+	 */
 	public void ouvrirPinceAsync() {
 	    if (pinceOuverte) {
 	        return;
 	    }
+
 	    moteurPince.setSpeed(VITESSE_OUVERTURE);
-	    moteurPince.rotate(ANGLE_OUVERTURE, true);
+	    moteurPince.rotateTo(ANGLE_OUVERTURE, true);
 	    pinceOuverte = true;
 	}
 
-	// Ouvre la pince et attend la fin (pour la dépose).
+	/**
+	 * Ouvre la pince et attend la fin du mouvement.
+	 */
 	public void ouvrirPince() {
 	    ouvrirPinceAsync();
 	    moteurPince.waitComplete();
 	}
 
-	public void serrerPince() {
+	/**
+	 * Ferme avec palet a 98 degres, ou sans palet a zero.
+	 */
+	public void serrerPince(boolean avecPalet) {
 	    moteurPince.waitComplete();
 	    moteurPince.setSpeed(SPEED);
-	    moteurPince.backward();
-	    Delay.msDelay(5000);
-	    moteurPince.stop();
+
+	    if (avecPalet) {
+	        moteurPince.rotateTo(POSITION_SERRAGE_PALET);
+	    } else {
+	        moteurPince.rotateTo(0);
+	    }
+
 	    pinceOuverte = false;
+	}
+
+	/**
+	 * Ferme completement la pince sans palet.
+	 */
+	public void serrerPince() {
+	    serrerPince(false);
+	}
+
+	/**
+	 * Renvoie la position du moteur pour les tests.
+	 */
+	public int getPositionPince() {
+	    return moteurPince.getTachoCount();
 	}
 
 	// Comportement intelligent de dépôt : avance en continu jusqu'à la ligne blanche,
