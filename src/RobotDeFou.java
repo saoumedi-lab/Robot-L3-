@@ -187,68 +187,142 @@ public class RobotDeFou {
 	}
 
 	// ----------------------------- centrerEtAvancer -----------------------------
-	public static void centrerEtAvancer (float[] tabOriginal, ArrayList<Integer> candidats) {
-        	
-        	//cherche le palais le plus proche parmi les palets détectés
-        	int indexPalet = trouverPaletPlusProche (tabOriginal, candidats);
-        	
-        	 // Si aucun palet n'a été trouvé (index = -1)
-        	if (indexPalet == -1 || Button.ESCAPE.isDown()) {
-        		return;
-        	}
-        	
-        	//On récupère la distance initiale du palet, On utilise l'index trouvé pour retrouver la distance
-        	float distPrecedente=tabOriginal[indexPalet];
-        	
-        	// Distance à partir de laquelle le robot considère qu'il est suffisamment proche du palet pour le prendre.
-        	final float DistancePrise = 0.35f;
-        	
-        	//Tolérance qui permet d'éviter de réagir à une petite variation de mesure de capteur
-        	final float Tolerance = 0.03f;
-        	
-        	while (!Button.ESCAPE.isDown()) {
-        		//Si le robot est déjà à 40 cm ou moins du palet, plus besoin d'avancer
-        		if(distPrecedente <= DistancePrise) {
-        			break;
-        		}
-        		robot.avancerSansFin(5);
-        		boolean decale = false;
-        		
-        		while(!Button.ESCAPE.isDown()) {
-        			
-        			float distActuelle = capteur.distance();
-        			
-        			if(distActuelle <=0  || Float.isNaN(distActuelle) || Float.isInfinite(distActuelle)) {
-        				robot.stop();
-        				return;
-        				}
-					// Si le capteur renvoie une valeur nulle ou négative, la mesure n'est pas exploitable.
-        			if (distActuelle <= DistancePrise) {
-        				robot.stop();
-        				distPrecedente= distActuelle;
-        				break;
-        			}
-        			if (distActuelle > distPrecedente + Tolerance) {
-        				robot.stop();
-        				decale = true;
-        				break;
-        			}
-        			distPrecedente= distActuelle; 
-        			Delay.msDelay(20);
-        		}
-        		robot.stop();
-        		if (Button.ESCAPE.isDown()) {
-        			return;
-        		}
-        		if (decale) {
-        		}	
+	public static void centrerEtAvancer(float distInitiale) {
+		final float DISTANCE_PRISE = 0.32f; // À 32 cm, le palet est devant la pince
+		final float TOLERANCE_PERTE = 0.04f; // Écart de 4 cm = le palet sort de l'axe
+
+		// 1. Calibrage initial fin dès la fin de analyser() (±15°)
+		float distCible = sondeDroiteGauche(distInitiale, 15);
+		if (distCible < 0 || Button.ESCAPE.isDown()) {
+			System.out.println("Palet introuvable au calibrage initial.");
+			return;
+		}
+
+		int corrections = 0;
+
+		// 2. Boucle d'approche avec corrections gauche/droite en chemin
+		while (!Button.ESCAPE.isDown() && distCible > DISTANCE_PRISE) {
+			robot.avancerSansFin(140);
+			float distPrecedente = distCible;
+			boolean decale = false;
+			Delay.msDelay(50); //verifié si c'est utile
+
+			// Surveillance en temps réel pendant que le robot avance
+			while (!Button.ESCAPE.isDown()) {
+				float distActuelle = capteur.distance();
+
+				if (distActuelle <= 0) {
+					continue; // Ignore les lectures parasites ponctuelles
+				}
+
+				// Arrivé à distance de prise : on stoppe l'approche
+				if (distActuelle <= DISTANCE_PRISE) {
+					robot.stop();
+					distCible = distActuelle;
+					break;
+				}
+
+				// Si la distance remonte brusquement, le robot a légèrement dévié du centre
+				if (distActuelle > distPrecedente + TOLERANCE_PERTE) {
+					robot.stop();
+					decale = true;
+					break;
+				}
+
+				distPrecedente = distActuelle;
+				distCible = distActuelle;
+				Delay.msDelay(15);
 			}
-        	robot.stop(); 
-        	if (!Button.ESCAPE.isDown()) {
-				
-        		avancerEtPrendrePalet();
-        	}
-        }
+
+			robot.stop();
+
+			if (Button.ESCAPE.isDown()) {
+				return;
+			}
+
+			// 3. Léger balayage droite/gauche pour se remettre au centre du palet
+			if (decale) {
+				corrections++;
+				if (corrections > 4) {
+					System.out.println("Palet perdu apres 4 corrections.");
+					return;
+				}
+
+				// Sonde de ±12° pour retrouver le milieu du palet
+				float nouvelleDist = sondeDroiteGauche(distPrecedente, 12);
+				if (nouvelleDist < 0) {
+					System.out.println("Impossible de se recentrer.");
+					return;
+				}
+				distCible = nouvelleDist;
+			}
+		}
+
+		// 4. Le robot est centré et à 32 cm : capture finale
+		
+			avancerEtPrendrePalet();
+		
+	}
+// ----------------------------- sondeDroiteGauche -----------------------------
+	/**
+	 * Effectue un léger balayage gauche -> droite (-angleMax à +angleMax)
+	 * pour repérer le centre exact du palet et y réaligner le robot.
+	 */
+	private static float sondeDroiteGauche(float distAttendue, int angleMax) {
+		// Se décale légèrement à gauche
+		robot.tournerG(angleMax);
+
+		ArrayList<Float> mesures = new ArrayList<Float>();
+		int amplitudeTotale = 2 * angleMax;
+
+		// Balaie vers la droite en enregistrant les mesures sans affichage LCD
+		robot.asyncTournerD(amplitudeTotale);
+		while (robot.isMoving() && !Button.ESCAPE.isDown()) {
+			mesures.add(capteur.distance());
+			Delay.msDelay(10);
+		}
+		robot.stop();
+
+		if (mesures.isEmpty() || Button.ESCAPE.isDown()) {
+			return -1.0f;
+		}
+
+		// Repère le début et la fin du signal correspondant au palet (±8 cm de tolérance)
+		int premier = -1;
+		int dernier = -1;
+		float distMin = Float.POSITIVE_INFINITY;
+
+		for (int i = 0; i < mesures.size(); i++) {
+			float d = mesures.get(i);
+			if (d > 0.12f && Math.abs(d - distAttendue) <= 0.08f) {
+				if (premier == -1) {
+					premier = i;
+				}
+				dernier = i;
+				if (d < distMin) {
+					distMin = d;
+				}
+			}
+		}
+
+		// Si le palet n'est plus dans ce secteur, on revient à la position de départ
+		if (premier == -1) {
+			robot.tournerG(angleMax);
+			return -1.0f;
+		}
+
+		// Calcule l'angle de retour vers la gauche pour viser le milieu exact du palet
+		float indexMilieu = (premier + dernier) / 2.0f;
+		float angleParcouru = (indexMilieu / mesures.size()) * amplitudeTotale;
+		int angleRetourGauche = Math.round(amplitudeTotale - angleParcouru);
+
+		if (angleRetourGauche > 0) {
+			robot.tournerG(angleRetourGauche);
+		}
+
+		return distMin;
+	}
+
 
 	// ----------------------------- trouverPaletPlusProche -----------------------------
 	public static int trouverPaletPlusProche(float[] tabOriginal, ArrayList<Integer> candidats) {
