@@ -436,7 +436,27 @@ public class RobotDeFou {
 	        robot.tournerG(180);   // face au terrain pour le scan suivant
 	    }
 	}
-	
+	public static void surveillerObstacle() {
+	    final float distanceArret = 0.20f; // 20 cm, à ajuster.
+	    try {
+	        while (!Button.ESCAPE.isDown()) {
+	            float distance = capteur.distance();
+	            // Arrêt si la mesure est inexploitable.
+	            if (distance <= 0 || Float.isNaN(distance)) {
+	                System.out.println("Mesure invalide : arret.");
+	                return;
+	            }
+	            if (distance <= distanceArret) {
+	                System.out.println("Obstacle a "
+	                        + distance * 100 + " cm : arret.");
+	                return;
+	            }
+	            Delay.msDelay(20);
+	        }
+	    } finally {
+	        robot.stop();
+	    }
+	}
 	
 
 	public static void main(String[] args) {
