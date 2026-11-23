@@ -347,8 +347,6 @@ public class RobotDeFou {
 			}
 		}
 
-		System.out.println("Total palets : " + candidats.size()
-				+ " | Cible la plus proche : " + (distPlusProche * 100) + " cm");
 		return indexPlusProche;
 	}
 
@@ -387,8 +385,7 @@ public class RobotDeFou {
 	    if (analyser()) {
 	        avancerEtPrendrePalet();
 	    } else {
-	        System.out.println("Deuxieme palet introuvable.");
-	    }
+	       }
 
 	    robot.stop();
 	}
@@ -406,8 +403,7 @@ public class RobotDeFou {
 	    robot.avancerSansFin(200);
 	    while (!Button.ESCAPE.isDown()) {
             float d = capteur.distance();
-            System.out.println("dist = " + (d * 100) + " cm");
-            if (d <= 0.25f) break;
+           if (d <= 0.25f) break;
             Delay.msDelay(20);
         }
 	    robot.stop();
