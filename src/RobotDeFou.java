@@ -412,13 +412,19 @@ public class RobotDeFou {
 	
 	public static void deposerPalet() {
 	    robot.avancerSansFin(200);
-	    while (capteur.distance() > 0.25f && !Button.ESCAPE.isDown()) {  // 0.25 à régler
-	        Delay.msDelay(20);
-	    }
+	    while (!Button.ESCAPE.isDown()) {
+            float d = capteur.distance();
+            System.out.println("dist = " + (d * 100) + " cm");
+            if (d <= 0.25f) break;
+            Delay.msDelay(20);
+        }
 	    robot.stop();
 	    robot.ouvrirPince();
 	    robot.reculer(15);
-	}
+	        robot.stop();
+	        // ...
+	    }
+	
 	
 	
 	public static void recupererLesPalets(int nbMax) {
