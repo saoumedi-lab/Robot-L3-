@@ -46,19 +46,18 @@ public class Capteur {
 	private float[] mesure;
 
 	// Noms des couleurs reconnues 
-	private final String[] noms = {"fond", "blanc", "vert", "gris", "bleu", "rouge", "noir", "jaune"};
+	private final String[] noms = {"fond", "blanc", "vert", "bleu", "rouge", "noir", "jaune"};
 
 	// Valeurs R, G, B d chaque surface
 	// remplacer nbr par valeur qu'on va mesurer
 	private final float[][] references = {
-		{0.12f, 0.12f, 0.11f}, // fond
-		{0.20f, 0.20f, 0.18f}, // blanc
-		{0.03f, 0.12f, 0.04f}, // vert
-		{0.05f, 0.05f, 0.05f}, // gris
-		{0.02f, 0.04f, 0.10f}, // bleu
-		{0.18f, 0.03f, 0.02f}, // rouge
-		{0.01f, 0.01f, 0.01f}, // noir
-		{0.20f, 0.16f, 0.03f}  // jaune
+		{0.07f, 0.087f, 0.082f}, // fond
+		{0.19f, 0.19f, 0.18f}, // blanc
+		{0.04f, 0.089f, 0.032f}, // vert
+		{0.013f, 0.032f, 0.051f}, // bleu
+		{0.99f, 0.038f, 0.026f}, // rouge
+		{0.014f, 0.029f, 0.013f}, // noir
+		{0.166f, 0.154f, 0.043f}  // jaune
 	};
 
 	//distance max acceptée entre ce que voit le capteur et une reference, au-delà la couleur est considérée comme inconnue
