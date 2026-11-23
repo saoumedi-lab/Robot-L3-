@@ -8,7 +8,7 @@ import lejos.robotics.filter.MeanFilter;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.lcd.LCD;
 
-public class Robotdefou {
+public class RobotDeFou {
 
 	private static Action robot;
 	private static Capteur capteur;
