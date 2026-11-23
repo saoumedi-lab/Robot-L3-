@@ -8,10 +8,12 @@ import lejos.robotics.filter.MeanFilter;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.lcd.LCD;
 
-public class RobotDeFou {
+public class Robotdefou {
 
 	private static Action robot;
 	private static Capteur capteur;
+	private static boolean avecPalet = false;
+	
 	/**
 	 * Associe les moteurs et les capteurs aux méthodes du robot.
 	 * Les objets sont créés par le test puis réutilisés ici.
@@ -59,7 +61,8 @@ public class RobotDeFou {
 	public static boolean analyser() {
 		ArrayList<Float> liste = new ArrayList<Float>();
 		int resultat = scanner(robot, capteur, liste);
-
+		avecPalet = false;
+		
 		System.out.println("Scan : code=" + resultat + ", mesures=" + liste.size());
 
 		if (resultat != OK || liste.isEmpty() || Button.ESCAPE.isDown()) {
@@ -186,7 +189,8 @@ public class RobotDeFou {
 
 			if (!Button.ESCAPE.isDown()) {
 				System.out.println("Contact detecte : fermeture de la pince.");
-				robot.serrerPince();
+				robot.serrerPince(true);
+				avecPalet = true;
 				System.out.println("Pince fermee.");
 			}
 
@@ -384,6 +388,7 @@ public class RobotDeFou {
 	    // 3. Tout droit jusqu'au camp adverse, puis dépose du palet
 	    robot.avancer(180);
 	    robot.ouvrirPince();
+	    avecPalet = false;
 	    Delay.msDelay(300);
 
 	    // 4. Reculer de quelques cm pour dégager le palet déposé
@@ -418,6 +423,7 @@ public class RobotDeFou {
         }
 	    robot.stop();
 	    robot.ouvrirPince();
+	    avecPalet = false;
 	    robot.reculer(15);
 	    }
 	
@@ -445,17 +451,53 @@ public class RobotDeFou {
 	
 
 	public static void main(String[] args) {
-	    robot = new Action();
-	    capteur = new Capteur();
-	    try {
-	        debut(true);               // true ou false selon ton camp
-	        revenirAxe();
-	        deposerPalet();            // dépose le 2e palet
-	        robot.tournerG(180);       // face au terrain
-	        recupererLesPalets(3);     // nombre de palets restants
-	    } finally {
-	        robot.stop();
-	        capteur.fermer();
-	    }
-	}
+		    robot = new Action();
+		    capteur = new Capteur();
+		    avecPalet = false;
+
+		    try {
+		        System.out.println("Pince fermee et vide au depart.");
+		        System.out.println("Place un palet face aux pinces.");
+		        System.out.println("ENTER pour commencer.");
+		        Button.ENTER.waitForPressAndRelease();
+
+		        avancerEtPrendrePalet();
+
+		        if (Button.ESCAPE.isDown()) {
+		            System.out.println("Test interrompu.");
+		            return;
+		        }
+
+		        System.out.println("Prise memorisee : " + avecPalet);
+		        System.out.println("Position pince : "
+		                + robot.getPositionPince() + " degres");
+		        System.out.println("Position attendue : 98 degres.");
+		        System.out.println("Verifie que le palet tient sans forcer.");
+		        System.out.println("ENTER pour ouvrir et liberer le palet.");
+
+		        Button.ENTER.waitForPressAndRelease();
+
+		        robot.ouvrirPince();
+		        avecPalet = false;
+
+		        System.out.println("Position ouverte : "
+		                + robot.getPositionPince() + " degres");
+		        System.out.println("Position attendue : 800 degres.");
+
+		        System.out.println("Retire le palet, puis ENTER pour fermer.");
+		        Button.ENTER.waitForPressAndRelease();
+
+		        robot.serrerPince(false);
+
+		        System.out.println("Position fermee : "
+		                + robot.getPositionPince() + " degres");
+		        System.out.println("Position attendue : 0 degre.");
+
+		    } finally {
+		        robot.stop();
+		        capteur.fermer();
+		    }
+
+		    System.out.println("Fin du test.");
+		}
 }
