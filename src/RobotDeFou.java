@@ -46,7 +46,6 @@ public class RobotDeFou {
 				// Une seule lecture : stockage en mètres, affichage en cm.
 				float distance = capteur.distance();
 				liste.add(distance);
-				System.out.println("Distance : " + (distance * 100) + " cm");
 
 				Delay.msDelay(10);
 			}
@@ -63,8 +62,6 @@ public class RobotDeFou {
 		int resultat = scanner(robot, capteur, liste);
 		avecPalet = false;
 		
-		System.out.println("Scan : code=" + resultat + ", mesures=" + liste.size());
-
 		if (resultat != OK || liste.isEmpty() || Button.ESCAPE.isDown()) {
 			return false;
 		}
@@ -84,8 +81,7 @@ public class RobotDeFou {
 
 		// Estime l'angle à partir de la position du signal dans le scan
 		float anglePalet = ((float) indexPalet / tab.length) * 360.0f;
-		System.out.println("Angle estime : " + anglePalet + " degres");
-
+		
 		// Rotation vers le palet et mise à jour de la boussole
 		if (anglePalet < 180) {
 			int angleG = (int) anglePalet;
@@ -159,9 +155,7 @@ public class RobotDeFou {
 			if (largeurCorrecte && creuxVisible) {
 				int indexCentre = (indexDebut + indexFin) / 2;
 				paletsValides.add(indexCentre);
-				System.out.println("Palet valide ajoute : index=" + indexCentre
-						+ " | dist=" + (tabOriginal[indexCentre] * 100) + " cm");
-			}
+				}
 
 			for (int i = indexDebut; i <= indexFin; i++) {
 				tab[i] = -1.0f;
@@ -188,11 +182,9 @@ public class RobotDeFou {
 			robot.stop();
 
 			if (!Button.ESCAPE.isDown()) {
-				System.out.println("Contact detecte : fermeture de la pince.");
 				robot.serrerPince(true);
 				avecPalet = true;
-				System.out.println("Pince fermee.");
-			}
+				}
 
 			Delay.msDelay(500);
 		} finally {
@@ -211,7 +203,6 @@ public class RobotDeFou {
 		// 1. Calibrage initial fin dès la fin de analyser() (±15°)
 		float distCible = sondeDroiteGauche(distInitiale, 15);
 		if (distCible < 0 || Button.ESCAPE.isDown()) {
-			System.out.println("Palet introuvable au calibrage initial.");
 			return;
 		}
 
@@ -260,14 +251,12 @@ public class RobotDeFou {
 			if (decale) {
 				corrections++;
 				if (corrections > 4) {
-					System.out.println("Palet perdu apres 4 corrections.");
 					return;
 				}
 
 				// Sonde de ±12° pour retrouver le milieu du palet
 				float nouvelleDist = sondeDroiteGauche(distPrecedente, 12);
 				if (nouvelleDist < 0) {
-					System.out.println("Impossible de se recentrer.");
 					return;
 				}
 				distCible = nouvelleDist;
