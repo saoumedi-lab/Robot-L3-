@@ -1,6 +1,12 @@
 import java.util.ArrayList;
 import lejos.hardware.Button;
 import lejos.utility.Delay;
+import lejos.robotics.SampleProvider;
+import lejos.hardware.sensor.EV3ColorSensor;        
+import lejos.robotics.Color;                                   
+import lejos.robotics.filter.MeanFilter;
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.lcd.LCD;
 
 public class RobotDeFou {
 
@@ -38,7 +44,8 @@ public class RobotDeFou {
 				// Une seule lecture : stockage en mètres, affichage en cm.
 				float distance = capteur.distance();
 				liste.add(distance);
-				
+				System.out.println("Distance : " + (distance * 100) + " cm");
+
 				Delay.msDelay(10);
 			}
 
@@ -84,7 +91,7 @@ public class RobotDeFou {
 			int angleD = 360 - (int) anglePalet;
 			robot.tournerD(angleD);
 		}
-
+		centrerEtAvancer(tab[indexPalet]);
 		return true;
 	}
 
@@ -163,26 +170,33 @@ public class RobotDeFou {
 
 	// ----------------------------- avancerEtPrendrePalet -----------------------------
 	public static void avancerEtPrendrePalet() {
-	    try {
-	        robot.ouvrirPinceAsync();      // la pince s'ouvre pendant qu'on avance
-	        robot.avancerSansFin(200);
+		try {
+			robot.ouvrirPince();
+			robot.avancerSansFin(200);
 
-	        while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
-	            Delay.msDelay(20);
-	        }
+			if (Button.ESCAPE.isDown()) {
+				return;
+			}
 
-	        robot.stop();
+			while (!capteur.detecterPression() && !Button.ESCAPE.isDown()) {
+				Delay.msDelay(20);
+			}
 
-	        if (!Button.ESCAPE.isDown()) {
-	            System.out.println("Contact detecte : fermeture de la pince.");
-	            robot.serrerPince();
-	            System.out.println("Pince fermee.");
-	        }
+			robot.stop();
 
-	        Delay.msDelay(500);
-	    } finally {
-	        robot.stop();
-	    }
+			if (!Button.ESCAPE.isDown()) {
+				System.out.println("Contact detecte : fermeture de la pince.");
+				robot.serrerPince();
+				System.out.println("Pince fermee.");
+			}
+
+			Delay.msDelay(500);
+		} finally {
+			robot.stop();
+		}
+		if (Button.ESCAPE.isDown()) {
+    return;
+}
 	}
 
 	// ----------------------------- centrerEtAvancer -----------------------------
@@ -204,10 +218,9 @@ public class RobotDeFou {
 			robot.avancerSansFin(140);
 			float distPrecedente = distCible;
 			boolean decale = false;
-			Delay.msDelay(50); //verifié si c'est utile
 
 			// Surveillance en temps réel pendant que le robot avance
-			while (!Button.ESCAPE.isDown()) {
+			while (robot.isMoving() && !Button.ESCAPE.isDown()) {
 				float distActuelle = capteur.distance();
 
 				if (distActuelle <= 0) {
@@ -258,11 +271,11 @@ public class RobotDeFou {
 		}
 
 		// 4. Le robot est centré et à 32 cm : capture finale
-		
+		if (!Button.ESCAPE.isDown()) {
 			avancerEtPrendrePalet();
-		
+		}
 	}
-// ----------------------------- sondeDroiteGauche -----------------------------
+
 	/**
 	 * Effectue un léger balayage gauche -> droite (-angleMax à +angleMax)
 	 * pour repérer le centre exact du palet et y réaligner le robot.
@@ -322,7 +335,6 @@ public class RobotDeFou {
 		return distMin;
 	}
 
-
 	// ----------------------------- trouverPaletPlusProche -----------------------------
 	public static int trouverPaletPlusProche(float[] tabOriginal, ArrayList<Integer> candidats) {
 		if (candidats.isEmpty()) {
@@ -346,22 +358,8 @@ public class RobotDeFou {
 				+ " | Cible la plus proche : " + (distPlusProche * 100) + " cm");
 		return indexPlusProche;
 	}
-	// true = pince déjà ouverte (au départ, on suppose qu'elle est fermée)
-	private static boolean pinceOuverte = false;
 
-	private static void ouvrirPinceSiBesoin() {
-	    if (!pinceOuverte) {
-	        robot.ouvrirPinceAsync();   // non bloquant, voir point 2
-	        pinceOuverte = true;
-	    }
-	}
-
-	private static void fermerPince() {
-	    robot.serrerPince();
-	    pinceOuverte = false;
-	}
-
-	// ----------------------------- debut -----------------------------
+	
 
 	public static void debut(boolean campGauche) {
 
@@ -385,11 +383,13 @@ public class RobotDeFou {
 
 	    // 3. Tout droit jusqu'au camp adverse, puis dépose du palet
 	    robot.avancer(180);
-	    robot.ouvrirPince();           // attend la fin de l'ouverture
-	    robot.reculer(10);
-	    
+	    robot.ouvrirPince();
+	    Delay.msDelay(300);
 
-	    // 4. 2e palet : la pince est déjà ouverte, elle ne bouge pas
+	    // 4. Reculer de quelques cm pour dégager le palet déposé
+	    robot.reculer(10);
+	    robot.serrerPince();
+	    // 5. Chercher et récupérer le 2e palet, côté camp adverse
 	    if (analyser()) {
 	        avancerEtPrendrePalet();
 	    } else {
@@ -399,8 +399,6 @@ public class RobotDeFou {
 	    robot.stop();
 	}
 
-
-	
 	public static void revenirAxe() {
 	    int cap = robot.getBoussole();
 	    if (cap > 0) {
@@ -444,30 +442,20 @@ public class RobotDeFou {
 	    }
 	}
 	
+	
+
 	public static void main(String[] args) {
-
-		//System.out.println("Appuie sur DROITE pour continuer...");
-		//Button.RIGHT.waitForPressAndRelease();
-		
-		System.out.println("Lancement de RobotDeFou...");
-
-		robot = new Action();
-		capteur = new Capteur();
-
-		try {
-			System.out.println("=== Debut de la recherche ===");
-
-			if (analyser()) {
-				System.out.println("Palet possible : rotation terminee.");
-				// avancerEtPrendrePalet();
-			} else {
-				System.out.println("Aucun palet cible ou recherche interrompue.");
-			}
-		} finally {
-			robot.stop();
-			capteur.fermer();
-		}
-
-		System.out.println("Fin du programme.");
+	    robot = new Action();
+	    capteur = new Capteur();
+	    try {
+	        debut(true);               // true ou false selon ton camp
+	        revenirAxe();
+	        deposerPalet();            // dépose le 2e palet
+	        robot.tournerG(180);       // face au terrain
+	        recupererLesPalets(3);     // nombre de palets restants
+	    } finally {
+	        robot.stop();
+	        capteur.fermer();
+	    }
 	}
 }
