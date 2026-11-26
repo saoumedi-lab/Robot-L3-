@@ -205,7 +205,74 @@ public class RobotDeFou {
 	}
 
 	// ----------------------------- centrerEtAvancer -----------------------------
-	public static void centrerEtAvancer(float distInitiale) {
+	public static boolean centrerEtAvancer(float distInitiale) {
+		final float DISTANCE_PRISE = 0.32f;  // distance à laquelle on lance la prise
+		final float PAS_CM = 10;             // longueur d'une étape d'approche
+		final long TEMPS_MAX = 20000;        // sécurité : 20 s maximum
+		final int ECHECS_MAX = 2;            // pertes de palet consécutives tolérées
+
+		long debut = System.currentTimeMillis();
+
+		// 1. Centrage initial : sonde étroite, puis élargie si le palet n'est pas trouvé
+		float dist = sondeDroiteGauche(distInitiale, 15);
+		if (dist < 0) {
+			dist = sondeDroiteGauche(distInitiale, 30);
+		}
+		if (dist < 0 || Button.ESCAPE.isDown()) {
+			return false;
+		}
+
+		int echecs = 0;
+
+		// 2. Approche par étapes : avancer, s'arrêter, se recentrer
+		while (dist > DISTANCE_PRISE && !Button.ESCAPE.isDown()) {
+
+			if (System.currentTimeMillis() - debut > TEMPS_MAX) {
+				robot.stop();
+				return false;
+			}
+
+			// Palet déjà au contact : on passe directement à la prise
+			if (capteur.detecterPression()) {
+				break;
+			}
+
+			// Étape de 10 cm au maximum, sans descendre sous la distance de prise
+			float pas = Math.min(PAS_CM, (dist - DISTANCE_PRISE) * 100);
+			if (pas < 2) {
+				break;   // assez proche
+			}
+			robot.avancer(pas);
+
+			// Après l'avance, le palet doit être plus proche d'autant
+			float attendu = dist - pas / 100f;
+
+			// Recentrage : sonde étroite, puis élargie en cas d'échec
+			float nouvelle = sondeDroiteGauche(attendu, 12);
+			if (nouvelle < 0) {
+				nouvelle = sondeDroiteGauche(attendu, 25);
+			}
+
+			if (nouvelle < 0) {
+				echecs++;
+				if (echecs > ECHECS_MAX) {
+					return false;     // palet perdu : analyser() pourra refaire un scan
+				}
+				dist = attendu;       // on suppose le palet encore là et on retente
+			} else {
+				echecs = 0;
+				dist = nouvelle;
+			}
+		}
+
+		// 3. Capture finale
+		if (Button.ESCAPE.isDown()) {
+			return false;
+		}
+		avancerEtPrendrePalet();
+		return avecPalet;
+	}
+	/*public static void centrerEtAvancer(float distInitiale) {
 		final float DISTANCE_PRISE = 0.32f; // À 32 cm, le palet est devant la pince
 		final float TOLERANCE_PERTE = 0.04f; // Écart de 4 cm = le palet sort de l'axe
 
