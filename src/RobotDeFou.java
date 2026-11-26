@@ -92,6 +92,15 @@ public class RobotDeFou {
 		}
 		centrerEtAvancer(tab[indexPalet]);
 		return avecPalet;
+		// dans analyser(boolean ignorerArriere), après detecterTousLesPalets :
+		if (ignorerArriere) {
+		    for (int k = candidats.size() - 1; k >= 0; k--) {
+		        float a = ((float) candidats.get(k) / tab.length) * 360.0f;
+		        if (a > 120 && a < 240) {
+		            candidats.remove(k);
+		        }
+		    }
+		}
 	}
 
 	// ----------------------------- detecterTousLesPalets -----------------------------
