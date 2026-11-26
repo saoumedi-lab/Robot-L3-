@@ -551,53 +551,21 @@ public static void revenirAxe() {
 	
 
 	public static void main(String[] args) {
-		    robot = new Action();
-		    capteur = new Capteur();
-		    avecPalet = false;
-
-		    try {
-		        System.out.println("Pince fermee et vide au depart.");
-		        System.out.println("Place un palet face aux pinces.");
-		        System.out.println("ENTER pour commencer.");
-		        Button.ENTER.waitForPressAndRelease();
-
-		        avancerEtPrendrePalet();
-
-		        if (Button.ESCAPE.isDown()) {
-		            System.out.println("Test interrompu.");
-		            return;
-		        }
-
-		        System.out.println("Prise memorisee : " + avecPalet);
-		        System.out.println("Position pince : "
-		                + robot.getPositionPince() + " degres");
-		        System.out.println("Position attendue : 98 degres.");
-		        System.out.println("Verifie que le palet tient sans forcer.");
-		        System.out.println("ENTER pour ouvrir et liberer le palet.");
-
-		        Button.ENTER.waitForPressAndRelease();
-
-		        robot.ouvrirPince();
-		        avecPalet = false;
-
-		        System.out.println("Position ouverte : "
-		                + robot.getPositionPince() + " degres");
-		        System.out.println("Position attendue : 800 degres.");
-
-		        System.out.println("Retire le palet, puis ENTER pour fermer.");
-		        Button.ENTER.waitForPressAndRelease();
-
-		        robot.serrerPince(false);
-
-		        System.out.println("Position fermee : "
-		                + robot.getPositionPince() + " degres");
-		        System.out.println("Position attendue : 0 degre.");
-
-		    } finally {
-		        robot.stop();
-		        capteur.fermer();
-		    }
-
-		    System.out.println("Fin du test.");
-		}
+	    robot = new Action();
+	    capteur = new Capteur();
+	    try {
+	        Button.ENTER.waitForPressAndRelease();
+	        long fin = System.currentTimeMillis() + 5 * 60 * 1000L;   // durée du match, à adapter
+	        debut(true);                     // true ou false selon ton camp
+	        if (avecPalet) {
+	            revenirAxe();
+	            deposerPalet();
+	        }
+	        faceAuTerrain();
+	        recupererLesPalets(fin);
+	    } finally {
+	        robot.stop();
+	        capteur.fermer();
+	    }
+	}
 }
