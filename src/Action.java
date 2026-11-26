@@ -21,7 +21,7 @@ public class Action {
 
 	private boolean pinceOuverte = false;               // la pince doit être fermée au lancement du programme
 	private final int VITESSE_OUVERTURE = 800;
-	private final int ANGLE_OUVERTURE = 950;
+	private final int ANGLE_OUVERTURE = 1100;
 	private final int POSITION_SERRAGE_PALET = 98;
 	private double dernierAngleRotation = 0;
 	// Constructeur qui initialise les roues sur les ports C (gauche) et B (droit).
