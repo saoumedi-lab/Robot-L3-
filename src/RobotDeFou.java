@@ -91,7 +91,7 @@ public class RobotDeFou {
 			robot.tournerD(angleD);
 		}
 		centrerEtAvancer(tab[indexPalet]);
-		return true;
+		return avecPalet;
 	}
 
 	// ----------------------------- detecterTousLesPalets -----------------------------
