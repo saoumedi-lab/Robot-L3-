@@ -29,33 +29,33 @@ public class RobotDeFou {
 
 	// ----------------------------- scanner -----------------------------
 	public static int scanner(Action robot, Capteur capteur, ArrayList<Float> liste) {
-		liste.clear();
+	    liste.clear();
 
-		try {
-			robot.asyncTournerG(360);
+	    try {
+	        robot.asyncTournerG(360);
 
-			while (robot.isMoving()) {
-				if (Button.ESCAPE.isDown()) {
-					return ARRET_BOUTON;
-				}
+	        while (robot.isMoving()) {
+	            if (Button.ESCAPE.isDown()) {
+	                return ARRET_BOUTON;
+	            }
 
-				if (capteur.detecterPression()) {
-					return ARRET_CONTACT;
-				}
+	            if (capteur.detecterPression()) {
+	                return ARRET_CONTACT;
+	            }
 
-				// Une seule lecture : stockage en mètres, affichage en cm.
-				float distance = capteur.distance();
-				liste.add(distance);
+	            // Une seule lecture : stockage en mètres, affichage en cm.
+	            float distance = capteur.distance();
+	            liste.add(distance);
+	            System.out.println("Distance : " + (distance * 100) + " cm");
 
-				Delay.msDelay(10);
-			}
+	            Delay.msDelay(10);
+	        }
 
-			return OK;
-		} finally {
-			robot.stop();
-		}
+	        return OK;
+	    } finally {
+	        robot.stop();
+	    }
 	}
-
 	// ----------------------------- Analyser -----------------------------
 	public static boolean analyser() {
 		
