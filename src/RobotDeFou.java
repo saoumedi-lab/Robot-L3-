@@ -405,18 +405,20 @@ public class RobotDeFou {
 	
 	// ----------------------------- deposerPalet -----------------------------
 	public static void deposerPalet() {
-	    robot.avancerSansFin(200);
-	    while (!Button.ESCAPE.isDown()) {
-            float d = capteur.distance();
-           if (d <= 0.25f) break;
-            Delay.msDelay(20);
-        }
-	    robot.stop();
-	    robot.ouvrirPince();
-	    avecPalet = false;
-	    robot.reculer(15);
-	    }
-	
+		    long limite = System.currentTimeMillis() + 10000;   // sécurité
+		    robot.avancerSansFin(200);
+		    while (!Button.ESCAPE.isDown()
+		            && !capteur.getCouleur().equals("blanc")
+		            && System.currentTimeMillis() < limite) {
+		        Delay.msDelay(20);
+		    }
+		    robot.stop();
+		    robot.avancer(15);        //  le palet doit être entièrement derrière la ligne
+		    robot.ouvrirPince();
+		    avecPalet = false;
+		    robot.reculer(15);
+		    robot.serrerPince();      // pince fermée pour le scan
+		}
 	
 	// ----------------------------- recupererLesPalets -----------------------------
 	public static void recupererLesPalets(int nbMax) {
