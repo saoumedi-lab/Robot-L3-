@@ -58,50 +58,57 @@ public class RobotDeFou {
 
 	// ----------------------------- Analyser -----------------------------
 	public static boolean analyser() {
-		ArrayList<Float> liste = new ArrayList<Float>();
-		int resultat = scanner(robot, capteur, liste);
-		avecPalet = false;
 		
-		if (resultat != OK || liste.isEmpty() || Button.ESCAPE.isDown()) {
-			return false;
+		    return analyser(false);        // utilisé par debut : on veut les palets derrière nous
 		}
 
-		float[] tab = new float[liste.size()];
-		for (int i = 0; i < liste.size(); i++) {
-			tab[i] = liste.get(i);
-		}
+		public static boolean analyser(boolean ignorerArriere) {
+		    ArrayList<Float> liste = new ArrayList<Float>();
+		    int resultat = scanner(robot, capteur, liste);
+		    avecPalet = false;
 
-		// Détection de tous les palets et sélection du plus proche
-		ArrayList<Integer> candidats = detecterTousLesPalets(tab);
-		int indexPalet = trouverPaletPlusProche(tab, candidats);
+		    if (resultat != OK || liste.isEmpty() || Button.ESCAPE.isDown()) {
+		        return false;
+		    }
 
-		if (indexPalet < 0 || Button.ESCAPE.isDown()) {
-			return false;
-		}
+		    float[] tab = new float[liste.size()];
+		    for (int i = 0; i < liste.size(); i++) {
+		        tab[i] = liste.get(i);
+		    }
 
-		// Estime l'angle à partir de la position du signal dans le scan
-		float anglePalet = ((float) indexPalet / tab.length) * 360.0f;
-		
-		// Rotation vers le palet et mise à jour de la boussole
-		if (anglePalet < 180) {
-			int angleG = (int) anglePalet;
-			robot.tournerG(angleG);
-		} else {
-			int angleD = 360 - (int) anglePalet;
-			robot.tournerD(angleD);
-		}
-		centrerEtAvancer(tab[indexPalet]);
-		return avecPalet;
-		// dans analyser(boolean ignorerArriere), après detecterTousLesPalets :
-		if (ignorerArriere) {
-		    for (int k = candidats.size() - 1; k >= 0; k--) {
-		        float a = ((float) candidats.get(k) / tab.length) * 360.0f;
-		        if (a > 120 && a < 240) {
-		            candidats.remove(k);
+		    // Détection de tous les palets
+		    ArrayList<Integer> candidats = detecterTousLesPalets(tab);
+
+		    // Après une dépose, on ignore les palets situés derrière le robot (dans le camp)
+		    if (ignorerArriere) {
+		        for (int k = candidats.size() - 1; k >= 0; k--) {
+		            float a = ((float) candidats.get(k) / tab.length) * 360.0f;
+		            if (a > 120 && a < 240) {
+		                candidats.remove(k);
+		            }
 		        }
 		    }
+
+		    // Sélection du plus proche parmi ceux qui restent
+		    int indexPalet = trouverPaletPlusProche(tab, candidats);
+
+		    if (indexPalet < 0 || Button.ESCAPE.isDown()) {
+		        return false;
+		    }
+
+		    // Estime l'angle à partir de la position du signal dans le scan
+		    float anglePalet = ((float) indexPalet / tab.length) * 360.0f;
+
+		    // Rotation vers le palet et mise à jour de la boussole
+		    if (anglePalet < 180) {
+		        robot.tournerG((int) anglePalet);
+		    } else {
+		        robot.tournerD(360 - (int) anglePalet);
+		    }
+
+		    centrerEtAvancer(tab[indexPalet]);
+		    return avecPalet;              // true seulement si le palet est vraiment en pince
 		}
-	}
 
 	// ----------------------------- detecterTousLesPalets -----------------------------
 	public static ArrayList<Integer> detecterTousLesPalets(float[] tabOriginal) {
@@ -365,8 +372,7 @@ public class RobotDeFou {
 			Delay.msDelay(10);
 		}
 		robot.stop();
-		robot.ajouterboussole(amplitudeTotale);
-		
+		robot.ajouterboussole(amplitudeTotale);	
 		if (mesures.isEmpty() || Button.ESCAPE.isDown()) {
 			return -1.0f;
 		}
@@ -461,11 +467,7 @@ public class RobotDeFou {
 	    robot.reculer(10);
 	    robot.serrerPince();
 	    // 5. Chercher et récupérer le 2e palet, côté camp adverse
-	    if (analyser()) {
-	        avancerEtPrendrePalet();
-	    } else {
-	       }
-
+	    analyser();
 	    robot.stop();
 	}
 
