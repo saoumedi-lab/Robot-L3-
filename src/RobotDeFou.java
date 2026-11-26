@@ -403,13 +403,13 @@ public class RobotDeFou {
 	}
 
 	// ----------------------------- revenirAxe -----------------------------
-	public static void revenirAxe() {
-	    int cap = robot.getBoussole();
-	    if (cap > 0) {
-	        robot.tournerG(cap);      // tournerD ajoute + à la boussole, tournerG retire
-	    } else if (cap < 0) {
-	        robot.tournerD(-cap);
-	    }
+public static void revenirAxe() {
+		int cap = robot.getBoussole();
+		if (cap > 180) {
+			robot.tournerD(360 - cap);
+		} else if (cap > 0) {
+			robot.tournerG(cap);
+		}
 	}
 	
 	// ----------------------------- deposerPalet -----------------------------
