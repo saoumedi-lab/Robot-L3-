@@ -498,25 +498,33 @@ public static void revenirAxe() {
 		    robot.serrerPince();      // pince fermée pour le scan
 		}
 	
-	// ----------------------------- recupererLesPalets -----------------------------
-	public static void recupererLesPalets(int nbMax) {
-	    int echecs = 0;
-	    int deposes = 0;
-
-	    while (deposes < nbMax && echecs < 3 && !Button.ESCAPE.isDown()) {
-	        if (!analyser()) {
-	            echecs++;
-	            robot.avancer(20);
-	            continue;
-	        }
-	        echecs = 0;
-	        avancerEtPrendrePalet();
-	        revenirAxe();
-	        deposerPalet();
-	        deposes++;
-	        robot.tournerG(180);   // face au terrain pour le scan suivant
+	
+	// met le cap à 180 : dos au camp adverse, face au terrain
+	public static void faceAuTerrain() {
+	    int ecart = (180 - robot.getBoussole() + 360) % 360;   // à tourner vers la droite
+	    if (ecart > 180) {
+	        robot.tournerG(360 - ecart);
+	    } else if (ecart > 0) {
+	        robot.tournerD(ecart);
 	    }
 	}
+	// ----------------------------- recupererLesPalets -----------------------------
+	
+		public static void recupererLesPalets(long fin) {
+		    int echecs = 0;
+		    while (System.currentTimeMillis() < fin && echecs < 3 && !Button.ESCAPE.isDown()) {
+		        if (!analyser(true)) {          // scan + approche + prise
+		            echecs++;
+		            faceAuTerrain();
+		            robot.avancer(20);
+		            continue;
+		        }
+		        echecs = 0;
+		        revenirAxe();
+		        deposerPalet();
+		        faceAuTerrain();
+		    }
+		}
 	
 	// ----------------------------- surveillerObstacle -----------------------------
 	public static void surveillerObstacle() {
