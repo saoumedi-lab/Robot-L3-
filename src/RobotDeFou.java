@@ -289,7 +289,8 @@ public class RobotDeFou {
 			Delay.msDelay(10);
 		}
 		robot.stop();
-
+		robot.ajouterboussole(amplitudeTotale);
+		
 		if (mesures.isEmpty() || Button.ESCAPE.isDown()) {
 			return -1.0f;
 		}

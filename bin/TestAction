@@ -1,0 +1,351 @@
+import lejos.hardware.Button;
+import lejos.utility.Delay;
+
+/**
+ * Tests manuels de la classe Action.
+ *
+ * Chaque méthode cible une fonctionnalité.
+ * Les déplacements et les angles doivent être vérifiés physiquement.
+ * Exécuter cette classe sur la brique EV3.
+ */
+public class TestAction {
+
+    private Action action = new Action();
+
+    /**
+     * Vérifie une avance de 20 cm en ligne droite.
+     */
+    public void testAvancer() {
+        System.out.println("TEST : avancer");
+        System.out.println("Repere la position puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.avancer(20);
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : avance de 20 cm en ligne droite.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie un recul de 20 cm en ligne droite.
+     */
+    public void testReculer() {
+        System.out.println("TEST : reculer");
+        System.out.println("Libere l'espace derriere puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.reculer(20);
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : recul de 20 cm en ligne droite.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie une avance continue pendant deux secondes.
+     */
+    public void testAvancerSansFin() {
+        System.out.println("TEST : avancerSansFin");
+        System.out.println("Prevois 30 cm libres devant puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.avancerSansFin(100);
+            Delay.msDelay(2000);
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : avance continue pendant 2 secondes.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie l'arrêt des deux roues après une avance continue.
+     */
+    public void testStop() {
+        System.out.println("TEST : stop");
+        System.out.println("ENTER pour demarrer.");
+        Button.ENTER.waitForPressAndRelease();
+
+        try {
+            action.avancerSansFin(100);
+
+            System.out.println("ENTER pour arreter les roues.");
+            Button.ENTER.waitForPressAndRelease();
+
+            action.stop();
+
+            System.out.println("Attendu : les deux roues sont arretees.");
+            Button.waitForAnyPress();
+        } finally {
+            action.stop();
+        }
+    }
+
+    /**
+     * Vérifie une rotation à gauche de 90 degrés.
+     */
+    public void testTournerG() {
+        System.out.println("TEST : tournerG");
+        System.out.println("Repere l'orientation puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.tournerG(90);
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : 90 degres vers la gauche.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie une rotation à droite de 90 degrés.
+     */
+    public void testTournerD() {
+        System.out.println("TEST : tournerD");
+        System.out.println("Repere l'orientation puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.tournerD(90);
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : 90 degres vers la droite.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie que la rotation gauche est asynchrone :
+     * le programme poursuit son exécution pendant le mouvement.
+     */
+    public void testAsyncTournerG() {
+        System.out.println("TEST : asyncTournerG");
+        System.out.println("Repere l'orientation puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.asyncTournerG(90);
+
+            System.out.println("Appel termine : rotation encore en cours ?");
+            System.out.println("isMoving : " + action.isMoving());
+
+            while (action.isMoving() && !Button.ESCAPE.isDown()) {
+                Delay.msDelay(20);
+            }
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : message pendant la rotation.");
+        System.out.println("Verifie aussi : 90 degres vers la gauche.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie que la rotation droite est asynchrone :
+     * le programme poursuit son exécution pendant le mouvement.
+     */
+    public void testAsyncTournerD() {
+        System.out.println("TEST : asyncTournerD");
+        System.out.println("Repere l'orientation puis appuie.");
+        Button.waitForAnyPress();
+
+        try {
+            action.asyncTournerD(90);
+
+            System.out.println("Appel termine : rotation encore en cours ?");
+            System.out.println("isMoving : " + action.isMoving());
+
+            while (action.isMoving() && !Button.ESCAPE.isDown()) {
+                Delay.msDelay(20);
+            }
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Attendu : message pendant la rotation.");
+        System.out.println("Verifie aussi : 90 degres vers la droite.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie isMoving() au repos, en mouvement et après l'arrêt.
+     */
+    public void testIsMoving() {
+        System.out.println("TEST : isMoving");
+        System.out.println("Prevois de la place puis appuie.");
+        Button.waitForAnyPress();
+
+        action.stop();
+
+        System.out.println("Au repos, attendu false : "
+                + action.isMoving());
+
+        try {
+            action.avancerSansFin(100);
+            Delay.msDelay(200);
+
+            System.out.println("En mouvement, attendu true : "
+                    + action.isMoving());
+        } finally {
+            action.stop();
+        }
+
+        System.out.println("Apres arret, attendu false : "
+                + action.isMoving());
+
+        Button.waitForAnyPress();
+    }
+
+    
+    /**
+     * Vérifie la valeur initiale de la boussole.
+     *
+     * Dans la version actuelle de Action, actBoussole()
+     * n'est jamais appelée : la valeur reste donc à zéro.
+     */
+    /**
+     * Vérifie la mise à jour de la boussole après deux rotations.
+     * Convention : gauche positive, droite négative.
+     */
+    public void testGetBoussole() {
+        System.out.println("TEST : getBoussole");
+        System.out.println("Le robot tournera a gauche puis a droite.");
+        System.out.println("ENTER pour demarrer.");
+        Button.ENTER.waitForPressAndRelease();
+
+        int orientationInitiale = action.getBoussole();
+
+        try {
+            System.out.println("Boussole initiale : " + orientationInitiale);
+
+            action.tournerG(90);
+
+            int apresGauche = action.getBoussole();
+
+            System.out.println("Apres gauche : " + apresGauche);
+            System.out.println("Variation attendue : +90 degres");
+
+            boolean gaucheCorrecte =
+                    (apresGauche - orientationInitiale - 90) % 360 == 0;
+
+            System.out.println("Test gauche reussi : " + gaucheCorrecte);
+
+            action.tournerD(90);
+
+            int apresDroite = action.getBoussole();
+
+            System.out.println("Apres droite : " + apresDroite);
+            System.out.println("Retour attendu : " + orientationInitiale);
+
+            boolean retourCorrect =
+                    (apresDroite - orientationInitiale) % 360 == 0;
+
+            System.out.println("Test retour reussi : " + retourCorrect);
+            System.out.println("Verifie aussi l'orientation physique.");
+
+        } finally {
+            action.stop();
+        }
+
+        Button.ENTER.waitForPressAndRelease();
+    }
+
+    /**
+     * Vérifie la fermeture de la pince et l'arrêt de son moteur.
+     * La pince doit être ouverte au début du test.
+     */
+    public void testSerrerPince() {
+        System.out.println("TEST : serrerPince");
+        System.out.println("Pince ouverte puis appuie.");
+        Button.waitForAnyPress();
+
+        action.serrerPince();
+
+        System.out.println("Attendu : pince fermee, moteur arrete.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie l'ouverture de la pince et l'arrêt de son moteur.
+     * La pince doit être fermée au début du test.
+     */
+    public void testOuvrirPince() {
+        System.out.println("TEST : ouvrirPince");
+        System.out.println("Pince fermee puis appuie.");
+        Button.waitForAnyPress();
+
+        action.ouvrirPince();
+
+        System.out.println("Attendu : pince ouverte, moteur arrete.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Vérifie l'avance jusqu'au blanc, puis l'ouverture de la pince.
+     *
+     * Préparer une ligne blanche reconnue par le capteur.
+     * La méthode lacher() actuelle n'a pas de limite de déplacement
+     * ni de gestion du bouton ESCAPE.
+     */
+    public void testLacher() {
+        System.out.println("TEST : lacher");
+        System.out.println("Place une ligne blanche devant le capteur.");
+        System.out.println("Pince fermee puis appuie.");
+        Button.waitForAnyPress();
+
+        Capteur capteurs = new Capteur();
+
+        try {
+            action.lacher(capteurs);
+        } finally {
+            action.stop();
+            capteurs.fermer();
+        }
+
+        System.out.println("Attendu : arret sur le blanc, pince ouverte.");
+        Button.waitForAnyPress();
+    }
+
+    /**
+     * Lance les tests sélectionnés.
+     * Retirer les commentaires uniquement devant les tests souhaités.
+     */
+    public static void main(String[] args) {
+        TestAction tests = new TestAction();
+
+        try {
+            tests.testAvancer();
+
+            // tests.testReculer();
+            // tests.testAvancerSansFin();
+            // tests.testStop();
+            // tests.testTournerG();
+            // tests.testTournerD();
+            // tests.testAsyncTournerG();
+            // tests.testAsyncTournerD();
+            // tests.testIsMoving();
+            //tests.testGetBoussole();
+            // tests.testSerrerPince();
+            // tests.testOuvrirPince();
+            // tests.testLacher();
+
+        } finally {
+            tests.action.stop();
+        }
+
+        System.out.println("Fin des tests.");
+    }
+}
