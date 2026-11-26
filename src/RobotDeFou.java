@@ -467,7 +467,11 @@ public class RobotDeFou {
 	    robot.reculer(10);
 	    robot.serrerPince();
 	    // 5. Chercher et récupérer le 2e palet, côté camp adverse
-	    analyser();
+	    robot.reculer(10);
+	    robot.serrerPince();
+	    faceAuTerrain();
+	    robot.avancer(30);     // le palet le plus proche passe de ~75 cm à ~45 cm
+	    analyser(true);
 	    robot.stop();
 	}
 
