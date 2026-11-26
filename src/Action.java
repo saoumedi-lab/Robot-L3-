@@ -8,7 +8,10 @@ import lejos.robotics.navigation.MovePilot;
 import lejos.utility.Delay; //testc
 
 
- // La classe Action gère l'ensemble des mouvements physiques du robot
+ /*
+ *Gère l'ensemble des déplacement, rotation, capteurs de direction et 
+ *action de la pince du robt.
+ */
 
 public class Action {
 
